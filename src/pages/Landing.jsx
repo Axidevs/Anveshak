@@ -88,9 +88,9 @@ function TypingText({ texts, speed = 80, pause = 2000 }) {
   }, [charIndex, isDeleting, textIndex, texts, speed, pause]);
 
   return (
-    <span className="text-fuchsia-700 font-medium">
+    <span className="text-emerald-700 font-medium">
       {currentText}
-      <span className="animate-pulse text-fuchsia-500 ml-0.5">|</span>
+      <span className="animate-pulse text-amber-500 ml-0.5">|</span>
     </span>
   );
 }
@@ -206,12 +206,12 @@ export default function Landing() {
   ];
 
   const features = [
-    { icon: ClipboardList, titleKey: 'feature.tracking', descKey: 'feature.trackingDesc', color: 'text-navy', bg: 'bg-navy/5', img: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=400&h=250&fit=crop' },
-    { icon: Share2, titleKey: 'feature.sharing', descKey: 'feature.sharingDesc', color: 'text-forest', bg: 'bg-forest/5', img: 'https://images.unsplash.com/photo-1551434678-e076c223a692?w=400&h=250&fit=crop' },
-    { icon: Bell, titleKey: 'feature.alerts', descKey: 'feature.alertsDesc', color: 'text-saffron', bg: 'bg-saffron/5', img: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=400&h=250&fit=crop' },
-    { icon: Mic, titleKey: 'feature.voice', descKey: 'feature.voiceDesc', color: 'text-[#7c3aed]', bg: 'bg-[#7c3aed]/5', img: 'https://images.unsplash.com/photo-1589903308904-1010c2294adc?w=400&h=250&fit=crop' },
-    { icon: Lock, titleKey: 'feature.vault', descKey: 'feature.vaultDesc', color: 'text-alert', bg: 'bg-alert/5', img: 'https://images.unsplash.com/photo-1563013544-824ae1b704d3?w=400&h=250&fit=crop' },
-    { icon: Eye, titleKey: 'feature.audit', descKey: 'feature.auditDesc', color: 'text-navy-700', bg: 'bg-navy-700/5', img: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=400&h=250&fit=crop' },
+    { icon: ClipboardList, titleKey: 'feature.tracking', descKey: 'feature.trackingDesc', color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=500&fit=crop' },
+    { icon: Share2, titleKey: 'feature.sharing', descKey: 'feature.sharingDesc', color: 'text-teal-600', bg: 'bg-teal-50', border: 'border-teal-200', img: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&h=500&fit=crop' },
+    { icon: Bell, titleKey: 'feature.alerts', descKey: 'feature.alertsDesc', color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-200', img: 'https://images.unsplash.com/photo-1512428559087-560fa5ceab42?w=800&h=500&fit=crop' },
+    { icon: Mic, titleKey: 'feature.voice', descKey: 'feature.voiceDesc', color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-200', img: 'https://images.unsplash.com/photo-1528312635001-4be7c11cda6d?w=800&h=500&fit=crop' },
+    { icon: Lock, titleKey: 'feature.vault', descKey: 'feature.vaultDesc', color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-200', img: 'https://images.unsplash.com/photo-1563986768494-4dee2763ff0f?w=800&h=500&fit=crop' },
+    { icon: Eye, titleKey: 'feature.audit', descKey: 'feature.auditDesc', color: 'text-emerald-800', bg: 'bg-emerald-100', border: 'border-emerald-300', img: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&h=500&fit=crop' },
   ];
 
   const steps = [
@@ -261,69 +261,69 @@ export default function Landing() {
       
       {/* ═══════════ HERO CAROUSEL MOVED BELOW HERO SECTION ═══════════ */}
 
-      {/* ═══════════ HERO SECTION — Neon Glassmorphic LED ═══════════ */}
-      <section ref={heroReveal.ref} className="relative min-h-[92vh] flex items-center overflow-hidden bg-gradient-to-br from-fuchsia-100 via-pink-100 to-violet-100">
-        {/* Animated LED Glows */}
+      {/* ═══════════ HERO SECTION — Light Green & Light Orange Minimalist UI ═══════════ */}
+      <section ref={heroReveal.ref} className="relative overflow-hidden bg-gradient-to-br from-emerald-50 via-amber-50/60 to-orange-50/70 pt-20 pb-6 sm:pt-22 sm:pb-8">
+        {/* Animated Subtle Ambient Glows */}
         <div className="absolute inset-0 overflow-hidden">
-          {/* Base gradient */}
+          {/* Base backdrop blur filter */}
           <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px]" />
           
-          {/* LED Orbs with strong glows */}
-          <div className="absolute w-[800px] h-[800px] bg-fuchsia-600/30 rounded-full blur-[120px] top-[-20%] left-[-10%] animate-pulse" style={{ animationDuration: '4s' }} />
-          <div className="absolute w-[600px] h-[600px] bg-purple-600/30 rounded-full blur-[100px] bottom-[-10%] right-[-5%]" style={{ animation: 'pulse 6s infinite alternate' }} />
-          <div className="absolute w-[400px] h-[400px] bg-pink-500/20 rounded-full blur-[80px] top-[30%] right-[20%]" style={{ animation: 'pulse 5s infinite alternate-reverse' }} />
-          <div className="absolute w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[100px] bottom-[20%] left-[15%]" style={{ animation: 'pulse 7s infinite alternate' }} />
+          {/* Light Green & Light Orange Ambient Orbs */}
+          <div className="absolute w-[800px] h-[800px] bg-emerald-400/20 rounded-full blur-[120px] top-[-20%] left-[-10%] animate-pulse" style={{ animationDuration: '4s' }} />
+          <div className="absolute w-[600px] h-[600px] bg-amber-400/25 rounded-full blur-[100px] bottom-[-10%] right-[-5%]" style={{ animation: 'pulse 6s infinite alternate' }} />
+          <div className="absolute w-[400px] h-[400px] bg-orange-300/20 rounded-full blur-[80px] top-[30%] right-[20%]" style={{ animation: 'pulse 5s infinite alternate-reverse' }} />
+          <div className="absolute w-[500px] h-[500px] bg-teal-400/20 rounded-full blur-[100px] bottom-[20%] left-[15%]" style={{ animation: 'pulse 7s infinite alternate' }} />
 
-          {/* LED Grid Lines */}
-          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255, 0, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 0, 255, 0.05) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+          {/* Minimal Grid Pattern */}
+          <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(16, 185, 129, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.04) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
 
-          {/* Floating Neon particles */}
-          <div className="absolute top-[20%] left-[10%] w-2 h-2 rounded-full bg-fuchsia-400 shadow-[0_0_15px_rgba(232,121,249,1)] float-slow" />
-          <div className="absolute top-[30%] right-[15%] w-3 h-3 rounded-full bg-purple-400 shadow-[0_0_20px_rgba(192,132,252,1)] float-medium" />
-          <div className="absolute bottom-[25%] left-[20%] w-1.5 h-1.5 rounded-full bg-pink-400 shadow-[0_0_10px_rgba(244,114,182,1)] float-fast" />
-          <div className="absolute top-[60%] right-[10%] w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_15px_rgba(129,140,248,1)] float-slow" style={{ animationDelay: '2s' }} />
+          {/* Floating Subtle Ambient Particles */}
+          <div className="absolute top-[20%] left-[10%] w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.8)] float-slow" />
+          <div className="absolute top-[30%] right-[15%] w-3 h-3 rounded-full bg-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.8)] float-medium" />
+          <div className="absolute bottom-[25%] left-[20%] w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.8)] float-fast" />
+          <div className="absolute top-[60%] right-[10%] w-2.5 h-2.5 rounded-full bg-teal-400 shadow-[0_0_15px_rgba(45,212,191,0.8)] float-slow" style={{ animationDelay: '2s' }} />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16 w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center mb-6 lg:mb-8">
             {/* Left content */}
             <div className={`${heroReveal.visible ? 'fade-in-up' : 'opacity-0'}`}>
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full backdrop-blur-md bg-white/40 border border-white/60 mb-6 text-xs font-medium text-fuchsia-800 shadow-sm">
-                <div className="flex gap-0 w-8 h-1 rounded-full overflow-hidden">
-                  <div className="flex-1 bg-fuchsia-400 shadow-[0_0_10px_#d946ef]" />
-                  <div className="flex-1 bg-purple-400 shadow-[0_0_10px_#a855f7]" />
-                  <div className="flex-1 bg-pink-400 shadow-[0_0_10px_#ec4899]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full backdrop-blur-md bg-white/70 border border-emerald-200/80 mb-3 text-xs font-semibold text-emerald-900 shadow-sm">
+                <div className="flex gap-0.5 w-7 h-1.5 rounded-full overflow-hidden">
+                  <div className="flex-1 bg-emerald-500 shadow-[0_0_6px_#10b981]" />
+                  <div className="flex-1 bg-amber-400 shadow-[0_0_6px_#f59e0b]" />
+                  <div className="flex-1 bg-orange-500 shadow-[0_0_6px_#f97316]" />
                 </div>
                 Government of India Digital Initiative
-                <Sparkles className="w-3 h-3 text-pink-500" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-bold text-charcoal leading-[1.1] tracking-tight mb-4 drop-shadow-sm animate-popup">
-                <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 to-pink-500">न्याय</span>{' '}
+              <h1 className="text-3xl sm:text-4xl lg:text-[2.85rem] font-bold text-charcoal leading-[1.15] tracking-tight mb-2 drop-shadow-sm animate-popup">
+                <span className="font-serif italic text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-600">न्याय</span>{' '}
                 <span>सेतु</span>
                 <br />
-                <span className="text-3xl sm:text-4xl lg:text-[2.75rem] font-semibold animate-text-gradient bg-gradient-to-r from-purple-700 via-fuchsia-700 to-pink-600 bg-clip-text text-transparent inline-block pb-1">
+                <span className="text-2xl sm:text-3xl lg:text-[2.25rem] font-semibold animate-text-gradient bg-gradient-to-r from-emerald-800 via-teal-700 to-amber-600 bg-clip-text text-transparent inline-block pb-0.5">
                   {t('hero.title')}
                 </span>
               </h1>
 
-              <p className="text-base sm:text-lg text-charcoal-muted leading-relaxed mb-3 max-w-lg font-medium">
+              <p className="text-sm sm:text-base text-charcoal-muted leading-relaxed mb-2 max-w-lg font-medium">
                 {t('hero.subtitle')}
               </p>
 
               {/* Typing effect */}
-              <p className="text-sm mb-8 h-6 font-medium">
+              <p className="text-xs sm:text-sm mb-4 h-5 font-medium">
                 <span className="text-charcoal-muted">Try: </span>
                 <TypingText texts={typingTexts} />
               </p>
 
               {/* Search Bar with interactive suggestions */}
-              <div ref={searchRef} className="relative mb-8 max-w-xl">
+              <div ref={searchRef} className="relative mb-4 max-w-xl">
                 <div className="relative">
-                  <div className="backdrop-blur-xl bg-white/60 border border-white/60 flex items-center px-2 py-1 !rounded-2xl shadow-lg ring-1 ring-black/5">
+                  <div className="backdrop-blur-xl bg-white/75 border border-emerald-200/80 flex items-center px-2 py-0.5 !rounded-2xl shadow-md ring-1 ring-emerald-500/10">
                     <div className="pl-3 flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-fuchsia-600" />
+                      <Sparkles className="w-4 h-4 text-emerald-600" />
                     </div>
                     <input
                       type="text"
@@ -331,33 +331,33 @@ export default function Landing() {
                       onChange={(e) => { setSearchQuery(e.target.value); setShowSuggestions(true); setSelectedAnswer(null); }}
                       onFocus={() => setShowSuggestions(true)}
                       placeholder={t('hero.search')}
-                      className="flex-1 py-3.5 px-3 text-sm text-charcoal placeholder-charcoal-muted/70 bg-transparent outline-none font-medium"
+                      className="flex-1 py-2.5 px-2.5 text-sm text-charcoal placeholder-charcoal-muted/70 bg-transparent outline-none font-medium"
                       aria-label="Search for services"
                     />
-                    <button className="m-1 px-5 py-3 bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white rounded-xl font-medium text-sm transition-all duration-300 flex items-center gap-2 shadow-[0_0_20px_rgba(192,132,252,0.4)] hover:shadow-[0_0_25px_rgba(217,70,239,0.6)]">
-                      <Search className="w-4 h-4" />
+                    <button className="m-1 px-4 py-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-amber-500 hover:from-emerald-500 hover:to-amber-400 text-white rounded-xl font-medium text-xs sm:text-sm transition-all duration-300 flex items-center gap-1.5 shadow-[0_0_15px_rgba(16,185,129,0.3)] hover:shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+                      <Search className="w-3.5 h-3.5" />
                       <span className="hidden sm:inline">{t('hero.searchBtn')}</span>
                     </button>
                   </div>
 
                   {/* Interactive suggestions dropdown */}
                   {showSuggestions && (
-                    <div className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl bg-white/95 border border-purple-200 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
+                    <div className="absolute top-full left-0 right-0 mt-2 backdrop-blur-xl bg-white/95 border border-emerald-200 rounded-2xl shadow-2xl overflow-hidden z-50 max-h-96 overflow-y-auto">
                       <div className="p-2">
-                        <p className="px-3 py-2 text-[10px] font-bold text-fuchsia-600 uppercase tracking-wider bg-fuchsia-50/50 rounded-t-xl mb-1">Frequently Asked Questions</p>
+                        <p className="px-3 py-2 text-[10px] font-bold text-emerald-800 uppercase tracking-wider bg-emerald-50/80 rounded-t-xl mb-1 border-b border-emerald-100/60">Frequently Asked Questions</p>
                         {suggestions.length > 0 ? suggestions.slice(0, 5).map((s, i) => (
                           <div
                             key={i}
-                            className="w-full flex flex-col gap-1.5 px-3 py-3 border-b border-fuchsia-100 last:border-0 hover:bg-fuchsia-50 transition-colors text-left group cursor-pointer rounded-xl"
+                            className="w-full flex flex-col gap-1.5 px-3 py-2.5 border-b border-emerald-50 last:border-0 hover:bg-emerald-50/60 transition-colors text-left group cursor-pointer rounded-xl"
                             onClick={() => { setSearchQuery(s.q); setShowSuggestions(false); setSelectedAnswer(s); }}
                           >
                             <div className="flex items-start gap-3">
-                              <Search className="w-4 h-4 text-fuchsia-400 group-hover:text-fuchsia-600 transition-colors flex-shrink-0 mt-0.5" />
+                              <Search className="w-4 h-4 text-emerald-500 group-hover:text-emerald-700 transition-colors flex-shrink-0 mt-0.5" />
                               <div className="flex-1">
-                                <span className="text-sm text-charcoal group-hover:text-fuchsia-900 transition-colors font-bold block">{s.q}</span>
-                                <span className="text-xs text-charcoal-muted group-hover:text-charcoal transition-colors leading-relaxed block mt-1 line-clamp-1">{s.a}</span>
+                                <span className="text-xs sm:text-sm text-charcoal group-hover:text-emerald-950 transition-colors font-bold block">{s.q}</span>
+                                <span className="text-[11px] text-charcoal-muted group-hover:text-charcoal transition-colors leading-relaxed block mt-0.5 line-clamp-1">{s.a}</span>
                               </div>
-                              <ArrowRight className="w-4 h-4 text-transparent group-hover:text-fuchsia-500 flex-shrink-0 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
+                              <ArrowRight className="w-4 h-4 text-transparent group-hover:text-amber-500 flex-shrink-0 transition-all opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0" />
                             </div>
                           </div>
                         )) : (
@@ -371,23 +371,23 @@ export default function Landing() {
 
               {/* Summary Answer Box */}
               {selectedAnswer && (
-                <div className="mb-8 max-w-xl bg-white/95 backdrop-blur-md border border-fuchsia-200 rounded-2xl p-5 shadow-lg animate-scale-in z-40 relative">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-fuchsia-100 border border-fuchsia-200 flex items-center justify-center flex-shrink-0 shadow-inner">
-                      <Sparkles className="w-5 h-5 text-fuchsia-600" />
+                <div className="mb-4 max-w-xl bg-white/95 backdrop-blur-md border border-emerald-200/90 rounded-2xl p-4 shadow-xl animate-scale-in z-40 relative">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 border border-emerald-200 flex items-center justify-center flex-shrink-0 shadow-inner">
+                      <Sparkles className="w-4 h-4 text-emerald-700" />
                     </div>
                     <div>
-                      <h4 className="text-sm font-bold text-fuchsia-900 mb-2">{selectedAnswer.q}</h4>
-                      <p className="text-sm text-charcoal leading-relaxed font-medium">{selectedAnswer.a}</p>
+                      <h4 className="text-xs sm:text-sm font-bold text-emerald-950 mb-1">{selectedAnswer.q}</h4>
+                      <p className="text-xs sm:text-sm text-charcoal leading-relaxed font-medium">{selectedAnswer.a}</p>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Quick action pills */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {['File FIR', 'Track Case', 'Report Cyber Crime', 'Find Station'].map((label, index) => (
-                  <button key={label} className={`px-4 py-2 rounded-full text-xs font-semibold backdrop-blur-md bg-white/40 border border-white/60 text-fuchsia-800 hover:text-fuchsia-900 hover:bg-white/60 hover:border-fuchsia-300 hover:shadow-lg transition-all duration-300 hover:-translate-y-1 hover:scale-105 animate-popup`} style={{ animationDelay: `${index * 0.15 + 0.3}s` }}>
+                  <button key={label} className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-white/60 border border-emerald-200/60 text-emerald-900 hover:text-amber-950 hover:bg-amber-50/80 hover:border-amber-300 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-popup`} style={{ animationDelay: `${index * 0.15 + 0.3}s` }}>
                     {label}
                   </button>
                 ))}
@@ -396,57 +396,57 @@ export default function Landing() {
 
             {/* Right — Dashboard preview / hero image */}
             <div className={`hidden lg:block ${heroReveal.visible ? 'fade-in-up fade-in-up-delay-2' : 'opacity-0'}`}>
-              <div className="relative">
+              <div className="relative max-w-xs sm:max-w-sm mx-auto">
                 {/* Floating glass cards showing platform previews */}
-                <div className="relative w-full aspect-square max-w-md mx-auto">
+                <div className="relative w-full aspect-[4/3] max-w-sm mx-auto">
                   {/* Main dashboard card */}
-                  <div className="absolute inset-4 backdrop-blur-xl bg-white/30 border border-white/50 !rounded-3xl overflow-hidden shadow-2xl group animate-float-rotate">
+                  <div className="absolute inset-2 backdrop-blur-xl bg-white/30 border border-white/60 rounded-2xl overflow-hidden shadow-xl group">
                     <img
                       src="https://images.unsplash.com/photo-1589829545856-d10d557cf95f?w=600&h=600&fit=crop"
                       alt="Justice system illustration"
                       className="w-full h-full object-cover opacity-90 mix-blend-overlay group-hover:scale-105 transition-transform duration-700"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-fuchsia-900/80 via-purple-900/20 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-tr from-fuchsia-300/30 to-purple-300/30 mix-blend-overlay" />
-                    <div className="absolute bottom-4 left-4 right-4">
-                      <p className="text-white text-sm font-semibold drop-shadow-md">Digital Justice for Every Citizen</p>
-                      <p className="text-fuchsia-100 text-xs font-medium">Secure · Transparent · Accessible</p>
+                    <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-teal-950/20 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-tr from-emerald-300/20 to-amber-300/20 mix-blend-overlay" />
+                    <div className="absolute bottom-3 left-3 right-3">
+                      <p className="text-white text-xs font-semibold drop-shadow-md">Digital Justice for Every Citizen</p>
+                      <p className="text-amber-200 text-[10px] font-medium">Secure · Transparent · Accessible</p>
                     </div>
                   </div>
 
                   {/* Floating stat cards */}
-                  <div className="absolute -top-2 -right-2 backdrop-blur-xl bg-white/70 border border-white/60 !rounded-2xl p-3 shadow-lg float-slow z-10">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-fuchsia-100 flex items-center justify-center border border-fuchsia-200">
-                        <CheckCircle className="w-4 h-4 text-fuchsia-600" />
+                  <div className="absolute -top-1 -right-1 backdrop-blur-xl bg-white/85 border border-emerald-200/80 rounded-xl p-2 shadow-md float-slow z-10">
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center border border-emerald-200">
+                        <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-charcoal">68%</p>
-                        <p className="text-[9px] text-charcoal-muted font-medium">Resolution Rate</p>
+                        <p className="text-[11px] font-bold text-charcoal">68%</p>
+                        <p className="text-[8px] text-charcoal-muted font-medium">Resolution Rate</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="absolute -bottom-2 -left-2 backdrop-blur-xl bg-white/70 border border-white/60 !rounded-2xl p-3 shadow-lg float-medium z-10" style={{ animationDelay: '1s' }}>
+                  <div className="absolute -bottom-1 -left-1 backdrop-blur-xl bg-white/85 border border-amber-200/80 rounded-xl p-2 shadow-md float-medium z-10" style={{ animationDelay: '1s' }}>
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-pink-100 flex items-center justify-center border border-pink-200">
-                        <Zap className="w-4 h-4 text-pink-600" />
+                      <div className="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center border border-amber-200">
+                        <Zap className="w-3.5 h-3.5 text-amber-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-charcoal">8 min</p>
-                        <p className="text-[9px] text-charcoal-muted font-medium">Avg FIR Time</p>
+                        <p className="text-[11px] font-bold text-charcoal">8 min</p>
+                        <p className="text-[8px] text-charcoal-muted font-medium">Avg FIR Time</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="absolute top-[40%] -left-6 backdrop-blur-xl bg-white/70 border border-white/60 !rounded-2xl p-3 shadow-lg float-fast z-10" style={{ animationDelay: '2s' }}>
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-lg bg-purple-100 flex items-center justify-center border border-purple-200">
-                        <Shield className="w-4 h-4 text-purple-600" />
+                  <div className="absolute top-[35%] -left-4 backdrop-blur-xl bg-white/85 border border-teal-200/80 rounded-xl p-2 shadow-md float-fast z-10" style={{ animationDelay: '2s' }}>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-6 h-6 rounded-md bg-teal-100 flex items-center justify-center border border-teal-200">
+                        <Shield className="w-3.5 h-3.5 text-teal-600" />
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-charcoal">AES-256</p>
-                        <p className="text-[9px] text-charcoal-muted font-medium">Encryption</p>
+                        <p className="text-[11px] font-bold text-charcoal">AES-256</p>
+                        <p className="text-[8px] text-charcoal-muted font-medium">Encryption</p>
                       </div>
                     </div>
                   </div>
@@ -454,11 +454,13 @@ export default function Landing() {
               </div>
             </div>
           </div>
+
+          {/* ═══════════ 5-IMAGE SLIDESHOW BANNER (VISIBLE IMMEDIATELY ON LANDING) ═══════════ */}
+          <div className="w-full rounded-2xl overflow-hidden shadow-xl border border-emerald-200/70">
+            <HeroCarousel />
+          </div>
         </div>
       </section>
-
-      {/* ═══════════ HERO CAROUSEL (UIDAI STYLE) ═══════════ */}
-      <HeroCarousel />
 
       {/* ═══════════ LIVE TICKER ═══════════ */}
       <div className="bg-navy py-2.5 overflow-hidden">
@@ -656,30 +658,34 @@ export default function Landing() {
           <div className={`grid grid-cols-1 lg:grid-cols-5 gap-6 ${featuresReveal.visible ? 'fade-in-up fade-in-up-delay-1' : 'opacity-0'}`}>
             {/* Feature list (clickable) */}
             <div className="lg:col-span-2 space-y-2">
-              {features.map(({ icon: Icon, titleKey, color, bg }, i) => (
+              {features.map(({ icon: Icon, titleKey, color, bg, border }, i) => (
                 <button
                   key={titleKey}
                   onClick={() => setActiveFeature(i)}
-                  className={`w-full flex items-center gap-3 p-4 rounded-2xl text-left transition-all duration-300 ${
+                  className={`w-full relative flex items-center gap-3 p-4 rounded-2xl text-left transition-all duration-300 border-2 overflow-hidden ${
                     activeFeature === i
-                      ? 'glass-card !bg-white shadow-lg scale-[1.02]'
-                      : 'hover:bg-white/50'
+                      ? `glass-card !bg-white shadow-xl scale-[1.02] ${border}`
+                      : 'border-transparent hover:bg-white/60'
                   }`}
                 >
-                  <div className={`w-10 h-10 rounded-xl ${activeFeature === i ? bg : 'bg-gray-100'} flex items-center justify-center transition-colors flex-shrink-0`}>
+                  {/* Subtle active background gradient */}
+                  {activeFeature === i && (
+                    <div className={`absolute inset-0 bg-gradient-to-r ${bg} to-transparent opacity-50`} />
+                  )}
+                  <div className={`relative z-10 w-11 h-11 rounded-xl ${activeFeature === i ? bg : 'bg-gray-100'} flex items-center justify-center transition-colors flex-shrink-0`}>
                     <Icon className={`w-5 h-5 ${activeFeature === i ? color : 'text-charcoal-muted'} transition-colors`} />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-sm font-semibold ${activeFeature === i ? 'text-charcoal' : 'text-charcoal-muted'} transition-colors`}>
+                  <div className="relative z-10 flex-1 min-w-0">
+                    <p className={`text-[15px] font-bold ${activeFeature === i ? 'text-charcoal' : 'text-charcoal-muted'} transition-colors inline-block relative`}>
                       {t(titleKey)}
+                      {/* Progress indicator - ONLY under text */}
+                      {activeFeature === i && (
+                        <span className={`absolute -bottom-1 left-0 h-[3px] rounded-full bg-gradient-to-r ${color.replace('text-', 'from-')} to-amber-500`} style={{ width: '100%', animation: 'shimmer 4s linear infinite' }} />
+                      )}
                     </p>
                   </div>
                   {activeFeature === i && (
-                    <ChevronRight className="w-4 h-4 text-navy flex-shrink-0" />
-                  )}
-                  {/* Progress indicator */}
-                  {activeFeature === i && (
-                    <div className="absolute bottom-0 left-0 h-0.5 bg-navy rounded-full" style={{ width: '100%', animation: 'shimmer 4s linear' }} />
+                    <ChevronRight className={`relative z-10 w-5 h-5 ${color} flex-shrink-0`} />
                   )}
                 </button>
               ))}
@@ -687,25 +693,37 @@ export default function Landing() {
 
             {/* Feature preview */}
             <div className="lg:col-span-3">
-              <div className="glass-card overflow-hidden" key={activeFeature}>
-                <div className="img-zoom h-52 sm:h-64">
-                  <img
-                    src={features[activeFeature].img}
-                    alt={t(features[activeFeature].titleKey)}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
+              <div className="glass-card overflow-hidden h-full flex flex-col border border-emerald-100/50 shadow-2xl relative" key={activeFeature}>
+                {/* Decorative glowing orb behind content */}
+                <div className={`absolute -top-32 -right-32 w-80 h-80 ${features[activeFeature].bg} rounded-full blur-[100px] opacity-70 pointer-events-none`} />
+                
+                <div className="relative img-zoom h-56 sm:h-72 w-full p-4 sm:p-6 pb-0">
+                  <div className="w-full h-full rounded-2xl overflow-hidden shadow-lg border border-white/60 relative">
+                    <img
+                      src={features[activeFeature].img}
+                      alt={t(features[activeFeature].titleKey)}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                    {/* Floating status tag */}
+                    <div className="absolute bottom-4 left-4 backdrop-blur-md bg-white/10 border border-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      Live Preview
+                    </div>
+                  </div>
                 </div>
-                <div className="p-6">
-                  <div className="flex items-center gap-3 mb-3">
+                
+                <div className="p-6 sm:p-8 flex-1 relative z-10">
+                  <div className="flex items-center gap-4 mb-4">
                     {(() => { const Icon = features[activeFeature].icon; return (
-                      <div className={`w-10 h-10 rounded-xl ${features[activeFeature].bg} flex items-center justify-center`}>
-                        <Icon className={`w-5 h-5 ${features[activeFeature].color}`} />
+                      <div className={`w-12 h-12 rounded-2xl ${features[activeFeature].bg} border ${features[activeFeature].border} flex items-center justify-center shadow-inner`}>
+                        <Icon className={`w-6 h-6 ${features[activeFeature].color}`} />
                       </div>
                     ); })()}
-                    <h3 className="text-lg font-bold text-charcoal">{t(features[activeFeature].titleKey)}</h3>
+                    <h3 className="text-xl sm:text-2xl font-bold text-charcoal">{t(features[activeFeature].titleKey)}</h3>
                   </div>
-                  <p className="text-sm text-charcoal-muted leading-relaxed">{t(features[activeFeature].descKey)}</p>
+                  <p className="text-base text-charcoal-muted leading-relaxed font-medium">{t(features[activeFeature].descKey)}</p>
                 </div>
               </div>
             </div>
