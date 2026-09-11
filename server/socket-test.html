@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Anveshak Notification Test</title>
+    <!-- Load Socket.io client -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        input { width: 400px; padding: 8px; margin-right: 10px; }
+        button { padding: 8px 15px; cursor: pointer; }
+        #log { background: #f4f4f4; padding: 15px; border-radius: 5px; margin-top: 20px; list-style-type: none; }
+        li { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h2>Real-Time Notifications Test</h2>
+    <p>1. Login via Postman to get a JWT.<br>2. Paste it below and Connect.<br>3. Trigger a notification via Postman to your userId and watch it appear here!</p>
+    
+    <input type="text" id="token" placeholder="Paste your Bearer JWT Token here">
+    <button onclick="connectSocket()">Connect</button>
+
+    <ul id="log"></ul>
+
+    <script>
+        let socket;
+        
+        function connectSocket() {
+            const tokenInput = document.getElementById('token').value.trim();
+            const cleanToken = tokenInput.replace(/^Bearer\s+/i, ''); 
+            
+            if (!cleanToken) return alert("Please enter a JWT token");
+
+            logEvent("Connecting...");
+
+            socket = io('http://localhost:5001', {
+                auth: { token: cleanToken }
+            });
+
+            socket.on('connect', () => {
+                logEvent('🟢 Connected successfully! Waiting for notifications...');
+            });
+
+            socket.on('connect_error', (err) => {
+                logEvent('🔴 Connection Error: ' + err.message);
+            });
+
+            socket.on('newNotification', (data) => {
+                console.log("Notification Data:", data);
+                logEvent('🔔 NEW NOTIFICATION: ' + JSON.stringify(data));
+            });
+        }
+
+        function logEvent(message) {
+            const li = document.createElement('li');
+            li.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            document.getElementById('log').prepend(li);
+        }
+    </script>
+</body>
+</html>
