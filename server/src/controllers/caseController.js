@@ -1,6 +1,7 @@
 const FIR = require("../models/FIR");
 const Case = require("../models/Case");
 const generateCaseId = require("../services/caseIdService");
+const { updateCaseStatus } = require("../services/caseLifecycleService");
 
 const createCaseFromFIR = async (req, res) => {
   try {
@@ -50,7 +51,46 @@ const createCaseFromFIR = async (req, res) => {
     });
   }
 };
+const updateStatus = async (req, res) => {
+  try {
+    const { caseId, nextStatus } = req.body;
+
+    if (!caseId || !nextStatus) {
+      return res.status(400).json({
+        message: "caseId and nextStatus are required",
+      });
+    }
+
+    const updatedCase = await updateCaseStatus(
+      caseId,
+      nextStatus
+    );
+
+    res.status(200).json({
+      message: "Case status updated successfully",
+      case: updatedCase,
+    });
+  } catch (error) {
+    if (error.message === "Case not found") {
+      return res.status(404).json({
+        message: error.message,
+      });
+    }
+
+    if (error.message.startsWith("Invalid status transition")) {
+      return res.status(400).json({
+        message: error.message,
+      });
+    }
+
+    res.status(500).json({
+      message: "Failed to update case status",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   createCaseFromFIR,
+  updateStatus,
 };

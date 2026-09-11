@@ -27,17 +27,20 @@ const caseSchema = new mongoose.Schema(
     },
 
     status: {
-      type: String,
-      enum: [
-        "CREATED",
-        "ASSIGNED",
-        "INVESTIGATION",
-        "COURT",
-        "CLOSED",
-      ],
-      default: "CREATED",
-    },
-
+  type: String,
+  enum: [
+    "FIR_REGISTERED",
+    "UNDER_REVIEW",
+    "ASSIGNED",
+    "INVESTIGATION",
+    "EVIDENCE_COLLECTION",
+    "FORENSIC_REVIEW",
+    "CHARGE_SHEET",
+    "COURT_PROCEEDINGS",
+    "RESOLVED",
+  ],
+  default: "FIR_REGISTERED",
+},
     priority: {
       type: String,
       enum: ["LOW", "MEDIUM", "HIGH"],
