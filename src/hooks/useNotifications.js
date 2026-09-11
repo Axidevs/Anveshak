@@ -49,6 +49,12 @@ export function useNotifications() {
   }, [user, contextToken]);
 
   const markAsRead = useCallback(async (id) => {
+    // Find the target notification in the current state
+    const target = notifications.find(n => n._id === id);
+    
+    // If it doesn't exist or is already read, skip entirely to prevent count drift and save network calls
+    if (!target || target.isRead) return;
+
     // Optimistic UI Update: immediately mark as read locally
     setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
     setUnreadCount(prev => Math.max(0, prev - 1));
@@ -63,7 +69,7 @@ export function useNotifications() {
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
     }
-  }, [contextToken]);
+  }, [notifications, contextToken]);
 
   const clearToast = useCallback(() => setLatestToast(null), []);
 
