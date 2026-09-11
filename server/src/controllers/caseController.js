@@ -1,12 +1,10 @@
 const FIR = require("../models/FIR");
- const Case = require("../models/Case");
+const Case = require("../models/Case");
+const AuditLog = require("../models/AuditLog");
+
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
-
-
-const {
-  getCaseTimeline,
-} = require("../services/timelineService");
+const { getCaseTimeline } = require("../services/timelineService");
 
 const createCaseFromFIR = async (req, res) => {
   try {
@@ -23,6 +21,16 @@ const createCaseFromFIR = async (req, res) => {
     if (!fir) {
       return res.status(404).json({
         message: "FIR not found",
+      });
+    }
+
+    // Citizen can create case only from their own FIR
+    if (
+      req.user.role === "CITIZEN" &&
+      fir.createdBy.toString() !== req.user.userId.toString()
+    ) {
+      return res.status(403).json({
+        message: "You can only create a case from your own FIR",
       });
     }
 
@@ -56,6 +64,8 @@ const createCaseFromFIR = async (req, res) => {
     });
   }
 };
+
+
 const updateStatus = async (req, res) => {
   try {
     const { caseId, nextStatus } = req.body;
@@ -66,9 +76,45 @@ const updateStatus = async (req, res) => {
       });
     }
 
+    const caseData = await Case.findOne({ caseId });
+
+    if (!caseData) {
+      return res.status(404).json({
+        message: "Case not found",
+      });
+    }
+
+    const userRole = req.user.role;
+    const userId = req.user.userId.toString();
+
+    // ADMIN can update any case
+    if (userRole === "ADMIN") {
+      // Allowed
+    }
+
+    // POLICE can update only assigned cases
+    else if (userRole === "POLICE") {
+      if (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer.toString() !== userId
+      ) {
+        return res.status(403).json({
+          message: "You can only update cases assigned to you",
+        });
+      }
+    }
+
+    // Other roles cannot update status
+    else {
+      return res.status(403).json({
+        message: "You are not authorized to update case status",
+      });
+    }
+
     const updatedCase = await updateCaseStatus(
       caseId,
-      nextStatus
+      nextStatus,
+      req.user.userId
     );
 
     res.status(200).json({
@@ -94,9 +140,244 @@ const updateStatus = async (req, res) => {
     });
   }
 };
+
+
+const getAllCases = async (req, res) => {
+  try {
+    let query = {};
+
+    // Citizen → only their own cases
+    if (req.user.role === "CITIZEN") {
+      query = {
+        citizenId: req.user.userId,
+      };
+    }
+
+    // Police → only cases assigned to them
+    else if (req.user.role === "POLICE") {
+      query = {
+        assignedOfficer: req.user.userId,
+      };
+    }
+
+    // Admin / Court / Investigating Agency
+    // can view all cases
+
+    const cases = await Case.find(query)
+      .populate("firId")
+      .populate("citizenId", "name email role")
+      .populate("assignedOfficer", "name email role")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      count: cases.length,
+      cases,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch cases",
+      error: error.message,
+    });
+  }
+};
+
+
+const getSingleCase = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+
+    const userRole = req.user.role;
+    const userId = req.user.userId;
+
+    let query = {
+      caseId,
+    };
+
+    // Citizen → only their own case
+    if (userRole === "CITIZEN") {
+      query.citizenId = userId;
+    }
+
+    // Police → only cases assigned to them
+    else if (userRole === "POLICE") {
+      query.assignedOfficer = userId;
+    }
+
+    const caseData = await Case.findOne(query)
+      .populate("firId")
+      .populate("citizenId", "name email role")
+      .populate("assignedOfficer", "name email role");
+
+    if (!caseData) {
+      return res.status(403).json({
+        message: "You are not authorized to access this case",
+      });
+    }
+
+    res.status(200).json({
+      case: caseData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch case",
+      error: error.message,
+    });
+  }
+};
+
+
+const getAssignedCases = async (req, res) => {
+  try {
+    const cases = await Case.find({
+      assignedOfficer: req.user.userId,
+    })
+      .populate("firId")
+      .populate("citizenId", "name email role")
+      .populate("assignedOfficer", "name email role")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      count: cases.length,
+      cases,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch assigned cases",
+      error: error.message,
+    });
+  }
+};
+
+// ===============================
+// GET CASE AUDIT LOGS
+// ===============================
+const getCaseAuditLogs = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+
+    const caseData = await Case.findOne({ caseId });
+
+    if (!caseData) {
+      return res.status(404).json({
+        message: "Case not found",
+      });
+    }
+
+    const userRole = req.user.role;
+    const userId = req.user.userId.toString();
+
+    // Citizen → own case only
+    if (userRole === "CITIZEN") {
+      if (caseData.citizenId.toString() !== userId) {
+        return res.status(403).json({
+          message: "You can only access audit logs of your own cases",
+        });
+      }
+    }
+
+    // Police → assigned cases only
+    else if (userRole === "POLICE") {
+      if (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer.toString() !== userId
+      ) {
+        return res.status(403).json({
+          message:
+            "You can only access audit logs of cases assigned to you",
+        });
+      }
+    }
+
+    const auditLogs = await AuditLog.find({ caseId })
+      .populate("userId", "name email role")
+      .sort({ createdAt: 1 });
+
+    res.status(200).json({
+      caseId,
+      count: auditLogs.length,
+      auditLogs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch audit logs",
+      error: error.message,
+    });
+  }
+};
+
+
+const getCaseStats = async (req, res) => {
+  try {
+    const totalCases = await Case.countDocuments();
+
+    const activeCases = await Case.countDocuments({
+      status: { $ne: "RESOLVED" },
+    });
+
+    const resolvedCases = await Case.countDocuments({
+      status: "RESOLVED",
+    });
+
+    const assignedCases = await Case.countDocuments({
+      assignedOfficer: { $ne: null },
+    });
+
+    const pendingAssignment = await Case.countDocuments({
+      assignedOfficer: null,
+    });
+
+    res.status(200).json({
+      totalCases,
+      activeCases,
+      resolvedCases,
+      assignedCases,
+      pendingAssignment,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch case statistics",
+      error: error.message,
+    });
+  }
+};
+
+
 const getTimeline = async (req, res) => {
   try {
     const { caseId } = req.params;
+
+    const caseData = await Case.findOne({ caseId });
+
+    if (!caseData) {
+      return res.status(404).json({
+        message: "Case not found",
+      });
+    }
+
+    const userRole = req.user.role;
+    const userId = req.user.userId.toString();
+
+    // Citizen → own case only
+    if (userRole === "CITIZEN") {
+      if (caseData.citizenId.toString() !== userId) {
+        return res.status(403).json({
+          message: "You can only access timeline of your own cases",
+        });
+      }
+    }
+
+    // Police → assigned cases only
+    else if (userRole === "POLICE") {
+      if (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer.toString() !== userId
+      ) {
+        return res.status(403).json({
+          message:
+            "You can only access timeline of cases assigned to you",
+        });
+      }
+    }
 
     const timeline = await getCaseTimeline(caseId);
 
@@ -116,5 +397,10 @@ const getTimeline = async (req, res) => {
 module.exports = {
   createCaseFromFIR,
   updateStatus,
+  getAllCases,
+  getSingleCase,
+  getAssignedCases,
+  getCaseAuditLogs,
+  getCaseStats,
   getTimeline,
 };

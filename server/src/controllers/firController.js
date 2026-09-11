@@ -1,5 +1,6 @@
 const FIR = require("../models/FIR");
 
+
 const createFIR = async (req, res) => {
   try {
     const {
@@ -54,6 +55,7 @@ const createFIR = async (req, res) => {
   }
 };
 
+
 const getFIR = async (req, res) => {
   try {
     const fir = await FIR.findById(req.params.firId)
@@ -63,6 +65,18 @@ const getFIR = async (req, res) => {
       return res.status(404).json({
         message: "FIR not found",
       });
+    }
+
+    const userRole = req.user.role;
+    const userId = req.user.userId.toString();
+
+    // Citizen → only their own FIR
+    if (userRole === "CITIZEN") {
+      if (fir.createdBy._id.toString() !== userId) {
+        return res.status(403).json({
+          message: "You can only access your own FIR",
+        });
+      }
     }
 
     res.status(200).json({
@@ -75,6 +89,7 @@ const getFIR = async (req, res) => {
     });
   }
 };
+
 
 const getMyFIRs = async (req, res) => {
   try {
@@ -93,6 +108,7 @@ const getMyFIRs = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   createFIR,
