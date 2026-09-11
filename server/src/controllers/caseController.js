@@ -1,3 +1,4 @@
+const { createNotification } = require("./notificationController");
 const FIR = require("../models/FIR");
 const Case = require("../models/Case");
 const generateCaseId = require("../services/caseIdService");
@@ -43,6 +44,16 @@ const createCaseFromFIR = async (req, res) => {
       citizenId: fir.createdBy,
       jurisdiction: fir.incidentLocation,
     });
+     try {
+      await createNotification({
+        userId: req.user.id,             // Jis user ne request ki hai, usi ko socket par jayega
+        caseId: newCase.caseId,          // Real case ID jo abhi generate hua hai
+        type: "CASE_ASSIGNED",
+        message: `Your case ${newCase.caseId} has been successfully created!`
+      });
+    } catch (err) {
+      console.error("Notification trigger failed:", err.message);
+    }
 
     res.status(201).json({
       message: "Case created successfully",
