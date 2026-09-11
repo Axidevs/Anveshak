@@ -1,9 +1,12 @@
-
+const Case = require("../models/Case");
 
 const {
   createTimelineEvent,
 } = require("./timelineService");
 
+const {
+  createAuditLog,
+} = require("./auditService");
 
 const allowedTransitions = {
   FIR_REGISTERED: ["UNDER_REVIEW"],
@@ -34,7 +37,6 @@ const canTransition = (currentStatus, nextStatus) => {
 
   return allowedStatuses.includes(nextStatus);
 };
-const Case = require("../models/Case");
 
 const updateCaseStatus = async (caseId, nextStatus) => {
   const caseData = await Case.findOne({ caseId });
@@ -51,19 +53,28 @@ const updateCaseStatus = async (caseId, nextStatus) => {
     );
   }
 
- caseData.status = nextStatus;
+  caseData.status = nextStatus;
 
-await caseData.save();
+  await caseData.save();
 
-await createTimelineEvent({
-  caseId: caseData.caseId,
-  status: nextStatus,
-  action: "CASE_STATUS_UPDATED",
-  performedBy: caseData.citizenId,
-  description: `Case status changed from ${currentStatus} to ${nextStatus}`,
-});
+  await createTimelineEvent({
+    caseId: caseData.caseId,
+    status: nextStatus,
+    action: "CASE_STATUS_UPDATED",
+    performedBy: caseData.citizenId,
+    description: `Case status changed from ${currentStatus} to ${nextStatus}`,
+  });
 
-return caseData;
+  await createAuditLog({
+    userId: caseData.citizenId,
+    caseId: caseData.caseId,
+    action: "CASE_STATUS_CHANGED",
+    oldValue: currentStatus,
+    newValue: nextStatus,
+    description: `Case status changed from ${currentStatus} to ${nextStatus}`,
+  });
+
+  return caseData;
 };
 
 module.exports = {

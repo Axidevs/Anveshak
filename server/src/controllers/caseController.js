@@ -1,5 +1,5 @@
 const FIR = require("../models/FIR");
-const Case = require("../models/Case");
+ const Case = require("../models/Case");
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
 
