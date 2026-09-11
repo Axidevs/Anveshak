@@ -1,3 +1,10 @@
+
+
+const {
+  createTimelineEvent,
+} = require("./timelineService");
+
+
 const allowedTransitions = {
   FIR_REGISTERED: ["UNDER_REVIEW"],
 
@@ -44,11 +51,19 @@ const updateCaseStatus = async (caseId, nextStatus) => {
     );
   }
 
-  caseData.status = nextStatus;
+ caseData.status = nextStatus;
 
-  await caseData.save();
+await caseData.save();
 
-  return caseData;
+await createTimelineEvent({
+  caseId: caseData.caseId,
+  status: nextStatus,
+  action: "CASE_STATUS_UPDATED",
+  performedBy: caseData.citizenId,
+  description: `Case status changed from ${currentStatus} to ${nextStatus}`,
+});
+
+return caseData;
 };
 
 module.exports = {

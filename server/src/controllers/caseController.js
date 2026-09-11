@@ -3,6 +3,11 @@ const Case = require("../models/Case");
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
 
+
+const {
+  getCaseTimeline,
+} = require("../services/timelineService");
+
 const createCaseFromFIR = async (req, res) => {
   try {
     const { firId } = req.body;
@@ -89,8 +94,27 @@ const updateStatus = async (req, res) => {
     });
   }
 };
+const getTimeline = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+
+    const timeline = await getCaseTimeline(caseId);
+
+    res.status(200).json({
+      caseId,
+      count: timeline.length,
+      timeline,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch case timeline",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   createCaseFromFIR,
   updateStatus,
+  getTimeline,
 };
