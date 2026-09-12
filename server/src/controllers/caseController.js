@@ -4,7 +4,6 @@ const Case = require("../models/Case");
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
 
-
 const {
   getCaseTimeline,
 } = require("../services/timelineService");

@@ -1,4 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom';
+
 import { X, LayoutDashboard, Search, Briefcase, Upload, Share2, ShieldCheck, MessageSquare, FileText, Lock, ChevronLeft, ChevronRight, Scale } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -23,10 +24,10 @@ export default function Sidebar({ isOpen, onClose }) {
   ];
 
   const courtLinks = [
-    { to: '/court', icon: LayoutDashboard, label: t('court.dashboard'), end: true },
-    { to: '/court/documents', icon: FileText, label: t('court.viewDocuments') },
-    { to: '/court/alerts', icon: MessageSquare, label: t('court.alertSettings') },
-    { to: '/court/proceedings', icon: Scale, label: t('court.proceedings') },
+    { to: '/court', icon: LayoutDashboard, label: t('court.dashboard') || 'Court Dashboard', end: true },
+    { to: '/court/cases', icon: Briefcase, label: t('court.myCases') || 'My Cases' },
+    { to: '/court/proceedings', icon: Scale, label: t('court.proceedings') || 'Legal Proceedings' },
+    { to: '/court/alerts', icon: MessageSquare, label: t('court.alertSettings') || 'Alert Settings' },
   ];
 
   const links = user?.role === 'court' ? courtLinks : officerLinks;

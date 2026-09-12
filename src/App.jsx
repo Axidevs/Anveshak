@@ -29,9 +29,11 @@ import AuditLog from './pages/officer/AuditLog';
 import SecurityPanel from './pages/officer/SecurityPanel';
 import CourtDashboard from './pages/court/CourtDashboard';
 import CourtCaseDetail from './pages/court/CourtCaseDetail';
+import CourtMyCases from './pages/court/CourtMyCases';
 import ViewDocuments from './pages/court/ViewDocuments';
 import AlertSettings from './pages/court/AlertSettings';
 import Proceedings from './pages/court/Proceedings';
+
 
 /* ─── Layout Wrappers ─── */
 
@@ -122,6 +124,7 @@ function AppRoutes() {
       {/* Court routes */}
       <Route element={<DashboardLayout />}>
         <Route path="/court" element={<CourtDashboard />} />
+        <Route path="/court/cases" element={<CourtMyCases />} />
         <Route path="/court/cases/:id" element={<CourtCaseDetail />} />
         <Route path="/court/documents" element={<ViewDocuments />} />
         <Route path="/court/alerts" element={<AlertSettings />} />
