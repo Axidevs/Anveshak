@@ -16,7 +16,8 @@ const auditLogSchema = new mongoose.Schema(
 // Pre-save hook to generate the cryptographic hash of the log
 auditLogSchema.pre("validate", function () {
   if (!this.logHash) {
-    const payload = `${this.caseId}|${this.userId}|${this.action}|${this.details}|${Date.now()}`;
+    const timestamp = this.createdAt || new Date();
+    const payload = `${this.caseId}|${this.userId}|${this.action}|${this.details}|${timestamp.toISOString()}`;
     this.logHash = crypto.createHmac("sha256", process.env.JWT_SECRET || "audit_secret")
       .update(payload)
       .digest("hex");

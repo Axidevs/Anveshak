@@ -76,17 +76,26 @@ exports.addHearingOrder = async (req, res) => {
     let parsedSignature = null;
     
     if (signatureData) {
-      try { parsedSignature = JSON.parse(signatureData); } 
-      catch (e) { parsedSignature = signatureData; }
+      try { 
+        let raw = JSON.parse(signatureData); 
+        parsedSignature = {
+          method: String(raw.method || 'none'),
+          officerName: String(raw.officerName || ''),
+          timestamp: raw.timestamp || new Date().toISOString()
+        };
+      } catch (e) { parsedSignature = null; }
     }
+
+    const caseIdStr = String(caseId);
+    if (caseIdStr.length > 50) return res.status(400).json({ message: "Invalid case ID" });
 
     const user = await User.findById(req.user.userId);
 
     // 1. Save uploaded file if any
-    const savedDoc = await saveDocument(req, caseId, "Court Order", parsedSignature);
+    const savedDoc = await saveDocument(req, caseIdStr, "Court Order", parsedSignature);
 
     // 2. Update Case
-    const caseRecord = await Case.findOne({ caseId });
+    const caseRecord = await Case.findOne({ caseId: caseIdStr });
     if (!caseRecord) return res.status(404).json({ message: "Case not found" });
 
     const newOrder = {
@@ -136,19 +145,28 @@ exports.uploadFinalJudgment = async (req, res) => {
     let parsedSignature = null;
     
     if (signatureData) {
-      try { parsedSignature = JSON.parse(signatureData); } 
-      catch (e) { parsedSignature = signatureData; }
+      try { 
+        let raw = JSON.parse(signatureData); 
+        parsedSignature = {
+          method: String(raw.method || 'none'),
+          officerName: String(raw.officerName || ''),
+          timestamp: raw.timestamp || new Date().toISOString()
+        };
+      } catch (e) { parsedSignature = null; }
     }
 
     if (!req.file) {
       return res.status(400).json({ message: "Final judgment PDF is required" });
     }
 
+    const caseIdStr = String(caseId);
+    if (caseIdStr.length > 50) return res.status(400).json({ message: "Invalid case ID" });
+
     // 1. Save Document
-    const savedDoc = await saveDocument(req, caseId, "Final Judgment", parsedSignature);
+    const savedDoc = await saveDocument(req, caseIdStr, "Final Judgment", parsedSignature);
 
     // 2. Update Case Status
-    const caseRecord = await Case.findOne({ caseId });
+    const caseRecord = await Case.findOne({ caseId: caseIdStr });
     if (!caseRecord) return res.status(404).json({ message: "Case not found" });
 
     caseRecord.status = "DISPOSED";
@@ -186,15 +204,27 @@ exports.uploadCourtDocument = async (req, res) => {
     let parsedSignature = null;
     
     if (signatureData) {
-      try { parsedSignature = JSON.parse(signatureData); } 
-      catch (e) { parsedSignature = signatureData; }
+      try { 
+        let raw = JSON.parse(signatureData); 
+        parsedSignature = {
+          method: String(raw.method || 'none'),
+          officerName: String(raw.officerName || ''),
+          timestamp: raw.timestamp || new Date().toISOString()
+        };
+      } catch (e) { parsedSignature = null; }
     }
 
     if (!req.file) {
       return res.status(400).json({ message: "Document file is required" });
     }
 
-    const savedDoc = await saveDocument(req, caseId, type || "Supporting Document", parsedSignature);
+    const caseIdStr = String(caseId);
+    if (caseIdStr.length > 50) return res.status(400).json({ message: "Invalid case ID" });
+
+    const allowedDocTypes = ["Court Order", "Judicial Notice", "Bail Order", "Witness Summons", "Miscellaneous", "Supporting Document", "Charge Sheet", "Forensic", "Medical", "Statement"];
+    const docType = allowedDocTypes.includes(type) ? type : "Supporting Document";
+
+    const savedDoc = await saveDocument(req, caseIdStr, docType, parsedSignature);
 
     // Timeline entry
     await Timeline.create({

@@ -35,6 +35,18 @@ import AlertSettings from './pages/court/AlertSettings';
 import Proceedings from './pages/court/Proceedings';
 
 
+function ProtectedRoute({ allowedRoles }) {
+  const { user, isAuthenticated, isLoading } = useAuth();
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Outlet />;
+}
+
 /* ─── Layout Wrappers ─── */
 
 function PublicLayout() {
@@ -100,35 +112,41 @@ function AppRoutes() {
       </Route>
 
       {/* Citizen routes */}
-      <Route element={<CitizenLayout />}>
-        <Route path="/citizen" element={<CitizenDashboard />} />
-        <Route path="/citizen/log-fir" element={<LogFIR />} />
-        <Route path="/citizen/view-firs" element={<ViewFIRs />} />
-        <Route path="/citizen/fir/:id" element={<FIRDetail />} />
+      <Route element={<ProtectedRoute allowedRoles={['CITIZEN']} />}>
+        <Route element={<CitizenLayout />}>
+          <Route path="/citizen" element={<CitizenDashboard />} />
+          <Route path="/citizen/log-fir" element={<LogFIR />} />
+          <Route path="/citizen/view-firs" element={<ViewFIRs />} />
+          <Route path="/citizen/fir/:id" element={<FIRDetail />} />
+        </Route>
       </Route>
 
       {/* Officer routes */}
-      <Route element={<DashboardLayout />}>
-        <Route path="/officer" element={<OfficerDashboard />} />
-        <Route path="/officer/search" element={<SmartSearch />} />
-        <Route path="/officer/cases" element={<MyCases />} />
-        <Route path="/officer/cases/:id" element={<CaseDetail />} />
-        <Route path="/officer/upload" element={<ResourceUpload />} />
-        <Route path="/officer/sharing" element={<DataSharing />} />
-        <Route path="/officer/access" element={<AccessControl />} />
-        <Route path="/officer/chat" element={<DepartmentChat />} />
-        <Route path="/officer/audit" element={<AuditLog />} />
-        <Route path="/officer/security" element={<SecurityPanel />} />
+      <Route element={<ProtectedRoute allowedRoles={['POLICE']} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/officer" element={<OfficerDashboard />} />
+          <Route path="/officer/search" element={<SmartSearch />} />
+          <Route path="/officer/cases" element={<MyCases />} />
+          <Route path="/officer/cases/:id" element={<CaseDetail />} />
+          <Route path="/officer/upload" element={<ResourceUpload />} />
+          <Route path="/officer/sharing" element={<DataSharing />} />
+          <Route path="/officer/access" element={<AccessControl />} />
+          <Route path="/officer/chat" element={<DepartmentChat />} />
+          <Route path="/officer/audit" element={<AuditLog />} />
+          <Route path="/officer/security" element={<SecurityPanel />} />
+        </Route>
       </Route>
 
       {/* Court routes */}
-      <Route element={<DashboardLayout />}>
-        <Route path="/court" element={<CourtDashboard />} />
-        <Route path="/court/cases" element={<CourtMyCases />} />
-        <Route path="/court/cases/:id" element={<CourtCaseDetail />} />
-        <Route path="/court/documents" element={<ViewDocuments />} />
-        <Route path="/court/alerts" element={<AlertSettings />} />
-        <Route path="/court/proceedings" element={<Proceedings />} />
+      <Route element={<ProtectedRoute allowedRoles={['COURT', 'ADMIN']} />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/court" element={<CourtDashboard />} />
+          <Route path="/court/cases" element={<CourtMyCases />} />
+          <Route path="/court/cases/:id" element={<CourtCaseDetail />} />
+          <Route path="/court/documents" element={<ViewDocuments />} />
+          <Route path="/court/alerts" element={<AlertSettings />} />
+          <Route path="/court/proceedings" element={<Proceedings />} />
+        </Route>
       </Route>
 
       {/* Catch-all */}

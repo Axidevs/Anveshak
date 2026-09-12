@@ -78,7 +78,8 @@ const updateStatus = async (req, res) => {
 
     const updatedCase = await updateCaseStatus(
       caseId,
-      nextStatus
+      nextStatus,
+      req.user.userId
     );
 
     res.status(200).json({

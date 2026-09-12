@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { io } from 'socket.io-client';
 import { useAuth } from '../contexts/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 export function useNotifications() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -17,7 +19,7 @@ export function useNotifications() {
     if (!token) return;
 
     // 1. Fetch initial notifications from REST endpoint
-    fetch('http://localhost:5001/api/notifications', {
+    fetch(`${API_URL}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
@@ -30,7 +32,7 @@ export function useNotifications() {
       .catch(err => console.error("Failed to fetch notifications:", err));
 
     // 2. Connect Socket.io for real-time updates
-    const socket = io("http://localhost:5001", {
+    const socket = io(API_URL, {
       auth: { token }
     });
 
@@ -49,27 +51,30 @@ export function useNotifications() {
   }, [user, contextToken]);
 
   const markAsRead = useCallback(async (id) => {
-    // Find the target notification in the current state
-    const target = notifications.find(n => n._id === id);
+    let shouldCallApi = false;
     
-    // If it doesn't exist or is already read, skip entirely to prevent count drift and save network calls
-    if (!target || target.isRead) return;
+    setNotifications(prev => {
+      const target = prev.find(n => n._id === id);
+      if (!target || target.isRead) return prev;
+      shouldCallApi = true;
+      return prev.map(n => n._id === id ? { ...n, isRead: true } : n);
+    });
 
-    // Optimistic UI Update: immediately mark as read locally
-    setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
+    if (!shouldCallApi) return;
+    
     setUnreadCount(prev => Math.max(0, prev - 1));
 
     const token = contextToken || localStorage.getItem('token');
     try {
       // Send PATCH request to backend
-      await fetch(`http://localhost:5001/api/notifications/${id}/read`, {
+      await fetch(`${API_URL}/api/notifications/${id}/read`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` }
       });
     } catch (err) {
       console.error("Failed to mark notification as read:", err);
     }
-  }, [notifications, contextToken]);
+  }, [contextToken]);
 
   const clearToast = useCallback(() => setLatestToast(null), []);
 

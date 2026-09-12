@@ -10,7 +10,7 @@ const notificationSchema = new mongoose.Schema({
     enum: [
       'FIR_SUBMITTED', 'CASE_CREATED', 'CASE_ASSIGNED', 'EVIDENCE_UPLOADED',
       'EVIDENCE_VERIFIED', 'STATUS_CHANGED', 'COURT_UPDATE',
-      'INVESTIGATION_UPDATE', 'GENERAL'
+      'INVESTIGATION_UPDATE', 'GENERAL', 'NEW_MESSAGE'
     ] 
   },
   isRead: { type: Boolean, default: false },

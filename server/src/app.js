@@ -19,6 +19,9 @@ const server = http.createServer(app);
 // Initialize Socket.io
 socketUtil.init(server);
 
+const helmet = require("helmet");
+
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({ origin: ["http://localhost:5173", "http://localhost:3000"], credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 

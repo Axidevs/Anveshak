@@ -38,7 +38,7 @@ const canTransition = (currentStatus, nextStatus) => {
 };
 const Case = require("../models/Case");
 
-const updateCaseStatus = async (caseId, nextStatus) => {
+const updateCaseStatus = async (caseId, nextStatus, performedByUserId) => {
   const caseData = await Case.findOne({ caseId });
 
   if (!caseData) {
@@ -49,7 +49,7 @@ const updateCaseStatus = async (caseId, nextStatus) => {
 
   if (!canTransition(currentStatus, nextStatus)) {
     throw new Error(
-      `Invalid status transition: ${currentStatus} → ${nextStatus}`
+      `Invalid status transition: ${currentStatus} -> ${nextStatus}`
     );
   }
 
@@ -61,7 +61,7 @@ await createTimelineEvent({
   caseId: caseData.caseId,
   status: nextStatus,
   action: "CASE_STATUS_UPDATED",
-  performedBy: caseData.citizenId,
+  performedBy: performedByUserId || caseData.citizenId,
   description: `Case status changed from ${currentStatus} to ${nextStatus}`,
 });
 

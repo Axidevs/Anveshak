@@ -9,6 +9,8 @@ import {
   CheckCircle, Plus, Scale, X, UploadCloud, AlertCircle, FileDown, Activity, Upload
 } from 'lucide-react';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
 // Unified pre-trial timeline stages — identical to officer/citizen view
 const caseTimelineStages = [
   { event: 'FIR Filed',             description: 'First Information Report registered at the police station.', date: 'Sept 1, 2026',  by: 'Citizen / Station' },
@@ -121,7 +123,7 @@ export default function CourtCaseDetail() {
     if (orderFile) formData.append('file', orderFile);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/court/case/${caseId}/order`, {
+      const res = await fetch(``${API_URL}`/api/court/case/${caseId}/order`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -182,7 +184,7 @@ export default function CourtCaseDetail() {
     if (judgmentFile) formData.append('file', judgmentFile);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/court/case/${currentCaseId}/judgment`, {
+      const res = await fetch(``${API_URL}`/api/court/case/${currentCaseId}/judgment`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -233,7 +235,7 @@ export default function CourtCaseDetail() {
     formData.append('file', docFile);
 
     try {
-      const res = await fetch(`http://localhost:5001/api/court/case/${currentCaseId}/document`, {
+      const res = await fetch(``${API_URL}`/api/court/case/${currentCaseId}/document`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
