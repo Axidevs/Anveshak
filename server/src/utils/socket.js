@@ -6,7 +6,7 @@ let io;
 module.exports = {
   init: (server) => {
     io = socketIo(server, {
-      cors: { origin: "*" },
+      cors: { origin: ["http://localhost:5173", "http://localhost:3000"] },
     });
 
     io.use((socket, next) => {
