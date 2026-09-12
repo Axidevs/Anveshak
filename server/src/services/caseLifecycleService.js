@@ -20,9 +20,11 @@ const allowedTransitions = {
 
   CHARGE_SHEET: ["COURT_PROCEEDINGS"],
 
-  COURT_PROCEEDINGS: ["RESOLVED"],
+  COURT_PROCEEDINGS: ["RESOLVED", "DISPOSED"],
 
   RESOLVED: [],
+
+  DISPOSED: [],
 };
 
 const canTransition = (currentStatus, nextStatus) => {

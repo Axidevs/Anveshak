@@ -40,7 +40,7 @@ router.get(
   courtController.getCaseDocuments
 );
 
-module.exports = router;
+
 
 // POST: Record Audit Log
 router.post(
@@ -56,3 +56,5 @@ router.get(
   courtController.getAuditLogs
 );
 
+
+module.exports = router;

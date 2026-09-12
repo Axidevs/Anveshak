@@ -8,23 +8,37 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(false);
 
   const login = useCallback(async (role, credentials) => {
     setIsLoading(true);
-    // SIMULATED: Mock authentication delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const mockUser = mockUsers[role] || mockUsers.citizen;
-    setUser(mockUser);
-    setIsAuthenticated(true);
-    setIsLoading(false);
-    return mockUser;
+    try {
+      const res = await fetch('http://localhost:5001/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message);
+      
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+      setToken(data.token);
+      setIsAuthenticated(true);
+      return data.user;
+    } catch (err) {
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('token');
     setUser(null);
+    setToken(null);
     setIsAuthenticated(false);
   }, []);
 
@@ -62,6 +76,7 @@ export function AuthProvider({ children }) {
   return (
     <AuthContext.Provider value={{
       user,
+      token,
       isAuthenticated,
       isLoading,
       login,

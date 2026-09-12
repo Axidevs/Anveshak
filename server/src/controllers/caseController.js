@@ -45,7 +45,7 @@ const createCaseFromFIR = async (req, res) => {
     });
      try {
       await createNotification({
-        userId: req.user.id,             // Jis user ne request ki hai, usi ko socket par jayega
+        userId: req.user.userId,             // Jis user ne request ki hai, usi ko socket par jayega
         caseId: newCase.caseId,          // Real case ID jo abhi generate hua hai
         type: "CASE_ASSIGNED",
         message: `Your case ${newCase.caseId} has been successfully created!`
