@@ -3,6 +3,7 @@
 const Message = require("../models/Message");
 const Case = require("../models/Case");
 const { getIo } = require("../utils/socket");
+const { createNotification } = require("./notificationController");
 
 const canAccessCase = (caseRecord, user) => {
   if (user.role === "ADMIN") {
@@ -59,6 +60,29 @@ exports.sendMessage = async (req, res) => {
     const io = getIo();
 
     io.to(`case_${caseId}`).emit("receiveMessage", newMessage);
+        // Notify the other participant
+    let recipientId = null;
+
+    if (
+      req.user.role === "POLICE" &&
+      caseRecord.citizenId
+    ) {
+      recipientId = caseRecord.citizenId;
+    } else if (
+      req.user.role === "CITIZEN" &&
+      caseRecord.assignedOfficer
+    ) {
+      recipientId = caseRecord.assignedOfficer;
+    }
+
+    if (recipientId) {
+      await createNotification({
+        userId: recipientId,
+        caseId,
+        type: "NEW_MESSAGE",
+        message: `New message received for case ${caseId}`,
+      });
+    }
 
     res.status(201).json({
       message: "Message sent",
