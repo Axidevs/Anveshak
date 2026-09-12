@@ -1,16 +1,19 @@
-
 const dotenv = require("dotenv");
 dotenv.config();
+
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
 
 const connectDB = require("./config/db");
+const socketUtil = require("./utils/socket");
+const chatRoutes = require("./routes/chatRoutes");
+
 const authRoutes = require("./routes/authRoutes");
 const firRoutes = require("./routes/firRoutes");
 const caseRoutes = require("./routes/caseRoutes");
 const evidenceRoutes = require("./routes/evidenceRoutes");
-
-dotenv.config();
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -21,6 +24,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/fir", firRoutes);
 app.use("/api/case", caseRoutes);
 app.use("/api/evidence", evidenceRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/chat", chatRoutes);
 
 app.get("/", (req, res) => {
   res.send("Anveshak Backend is running");
@@ -28,11 +33,15 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5003;
 
+const server = http.createServer(app);
+
+socketUtil.init(server);
+
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
