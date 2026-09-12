@@ -2,6 +2,7 @@ const Case = require("../models/Case");
 const Document = require("../models/Document");
 const Timeline = require("../models/Timeline");
 const User = require("../models/User");
+const AuditLog = require("../models/AuditLog");
 const { createNotification } = require("./notificationController");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -54,6 +55,16 @@ const saveDocument = async (req, caseId, type, signatureData) => {
   });
 
   await doc.save();
+  
+  // Hash-Secured Audit Log for Uploads
+  await AuditLog.create({
+    caseId,
+    userId: req.user.userId,
+    action: "UPLOADED_DOCUMENT",
+    details: `Uploaded ${type}: ${req.file.originalname}`,
+    ipAddress: req.ip || req.headers["x-forwarded-for"] || "unknown"
+  });
+
   return doc;
 };
 
@@ -211,3 +222,38 @@ exports.getCaseDocuments = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+// --- Add Audit Log ---
+exports.addAuditLog = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+    const { action, details } = req.body;
+    
+    const log = await AuditLog.create({
+      caseId,
+      userId: req.user.userId,
+      action: action || "VIEWED_CASE",
+      details: details || `Viewed case ${caseId} dashboard`,
+      ipAddress: req.ip || req.headers["x-forwarded-for"] || "unknown"
+    });
+    
+    res.status(201).json({ message: "Audit log recorded securely", log });
+  } catch (error) {
+    console.error("addAuditLog error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// --- Get Audit Logs ---
+exports.getAuditLogs = async (req, res) => {
+  try {
+    const { caseId } = req.params;
+    const logs = await AuditLog.find({ caseId }).sort({ createdAt: -1 }).populate("userId", "name role");
+    res.status(200).json(logs);
+  } catch (error) {
+    console.error("getAuditLogs error:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+

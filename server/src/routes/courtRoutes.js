@@ -36,7 +36,23 @@ router.post(
 // GET: Fetch all documents for a case
 router.get(
   "/case/:caseId/documents",
+  allowRoles("COURT", "ADMIN"),
   courtController.getCaseDocuments
 );
 
 module.exports = router;
+
+// POST: Record Audit Log
+router.post(
+  "/case/:caseId/audit",
+  allowRoles("COURT", "ADMIN"),
+  courtController.addAuditLog
+);
+
+// GET: Fetch Audit Logs
+router.get(
+  "/case/:caseId/audit",
+  allowRoles("COURT", "ADMIN"),
+  courtController.getAuditLogs
+);
+
