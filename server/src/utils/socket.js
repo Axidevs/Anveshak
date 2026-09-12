@@ -24,9 +24,9 @@ module.exports = {
     });
 
     io.on("connection", (socket) => {
-      console.log(`Socket connected: ${socket.id} (User: ${socket.user.id})`);
+      console.log(`Socket connected: ${socket.id} (User: ${socket.user.userId})`);
       
-      socket.join(socket.user.id);
+      socket.join(socket.user.userId.toString());
 
       socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket.id}`);

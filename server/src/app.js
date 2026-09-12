@@ -8,6 +8,8 @@ const authRoutes = require("./routes/authRoutes");
 const firRoutes = require("./routes/firRoutes");
 const caseRoutes = require("./routes/caseRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const courtRoutes = require("./routes/courtRoutes");
+const path = require("path");
 
 dotenv.config();
 
@@ -20,12 +22,16 @@ socketUtil.init(server);
 app.use(cors());
 app.use(express.json());
 
+// Serve uploads folder statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 connectDB();
 
 app.use("/api/auth", authRoutes);
 app.use("/api/fir", firRoutes);
 app.use("/api/case", caseRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/court", courtRoutes);
 
 app.get("/", (req, res) => {
   res.send("Anveshak Backend is running");

@@ -27,20 +27,21 @@ const caseSchema = new mongoose.Schema(
     },
 
     status: {
-  type: String,
-  enum: [
-    "FIR_REGISTERED",
-    "UNDER_REVIEW",
-    "ASSIGNED",
-    "INVESTIGATION",
-    "EVIDENCE_COLLECTION",
-    "FORENSIC_REVIEW",
-    "CHARGE_SHEET",
-    "COURT_PROCEEDINGS",
-    "RESOLVED",
-  ],
-  default: "FIR_REGISTERED",
-},
+      type: String,
+      enum: [
+        "FIR_REGISTERED",
+        "UNDER_REVIEW",
+        "ASSIGNED",
+        "INVESTIGATION",
+        "EVIDENCE_COLLECTION",
+        "FORENSIC_REVIEW",
+        "CHARGE_SHEET",
+        "COURT_PROCEEDINGS",
+        "RESOLVED",
+        "DISPOSED"
+      ],
+      default: "FIR_REGISTERED",
+    },
     priority: {
       type: String,
       enum: ["LOW", "MEDIUM", "HIGH"],
@@ -51,6 +52,23 @@ const caseSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+
+    // --- Court Module Additions ---
+    nextHearingDate: {
+      type: Date,
+      default: null,
+    },
+    
+    courtProceedings: [
+      {
+        hearingDate: { type: Date, required: true },
+        note: { type: String, required: true },
+        nextHearingDate: { type: Date, default: null },
+        documentId: { type: mongoose.Schema.Types.ObjectId, ref: "Document", default: null },
+        signedBy: { type: String, default: null },
+        signedAt: { type: Date, default: null }
+      }
+    ],
   },
   {
     timestamps: true,

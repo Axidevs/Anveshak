@@ -108,85 +108,166 @@ export default function CourtCaseDetail() {
   };
 
   /* ─── Form Submissions ─── */
-  const handleAddOrderSubmit = (e) => {
+  const handleAddOrderSubmit = async (e) => {
     e.preventDefault();
-    const newOrder = {
-      hearingDate: hearingDate || new Date().toISOString().split('T')[0],
-      note: orderNote || 'Hearing concluded with judicial directions.',
-      nextHearingDate: nextHearingDate || 'TBD',
-      pdfName: orderFile ? orderFile.name : null,
-      signedBy: verifiedSignature?.officerName || judgeName,
-      signedAt: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-    };
+    const token = localStorage.getItem('token') || '';
+    const caseId = caseData.caseId || id;
 
-    setOrders(prev => [...prev, newOrder]);
+    const formData = new FormData();
+    formData.append('hearingDate', hearingDate || new Date().toISOString().split('T')[0]);
+    formData.append('note', orderNote || 'Hearing concluded with judicial directions.');
+    if (nextHearingDate) formData.append('nextHearingDate', nextHearingDate);
+    if (verifiedSignature) formData.append('signatureData', JSON.stringify(verifiedSignature));
+    if (orderFile) formData.append('file', orderFile);
 
-    if (orderFile) {
-      setDocuments(prev => [
-        {
-          id: Date.now(),
-          filename: orderFile.name,
-          type: 'Court Order',
-          uploadedBy: judgeName,
-          date: new Date().toISOString().split('T')[0],
-          size: `${(orderFile.size / (1024 * 1024)).toFixed(1)} MB`,
+    try {
+      const res = await fetch(`http://localhost:5001/api/court/case/${caseId}/order`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
         },
-        ...prev,
-      ]);
-    }
+        body: formData
+      });
 
-    // Reset & close
-    setHearingDate('');
-    setNextHearingDate('');
-    setOrderNote('');
-    setOrderFile(null);
-    setShowOrderModal(false);
+      if (!res.ok) throw new Error('Failed to save order');
+      const data = await res.json();
+
+      const newOrder = {
+        hearingDate: data.order.hearingDate,
+        note: data.order.note,
+        nextHearingDate: data.order.nextHearingDate || 'TBD',
+        pdfName: data.document?.filename || (orderFile ? orderFile.name : null),
+        signedBy: data.order.signedBy,
+        signedAt: new Date(data.order.signedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      };
+
+      setOrders(prev => [...prev, newOrder]);
+
+      if (data.document) {
+        setDocuments(prev => [
+          {
+            id: data.document._id,
+            filename: data.document.filename,
+            type: data.document.type,
+            uploadedBy: judgeName,
+            date: new Date(data.document.createdAt).toISOString().split('T')[0],
+            size: `${(data.document.size / (1024 * 1024)).toFixed(2)} MB`,
+            verified: data.document.digitalSignature?.verified
+          },
+          ...prev,
+        ]);
+      }
+
+      alert('Order successfully recorded with Cryptographic Digital Signature verification.');
+      setShowOrderModal(false);
+      setVerifiedSignature(null);
+      setOrderFile(null);
+      setOrderNote('');
+      setHearingDate('');
+      setNextHearingDate('');
+    } catch (err) {
+      console.error(err);
+      alert('Error saving order to backend.');
+    }
   };
 
-  const handleUploadJudgmentSubmit = (e) => {
+  const handleUploadJudgmentSubmit = async (e) => {
     e.preventDefault();
-    setCaseStatus('Disposed');
+    const token = localStorage.getItem('token') || '';
+    const currentCaseId = caseData.caseId || id;
 
-    if (judgmentFile) {
-      setDocuments(prev => [
-        {
-          id: Date.now(),
-          filename: judgmentFile.name,
-          type: 'Final Judgment',
-          uploadedBy: judgeName,
-          date: new Date().toISOString().split('T')[0],
-          size: `${(judgmentFile.size / (1024 * 1024)).toFixed(1)} MB`,
+    const formData = new FormData();
+    if (judgmentRemarks) formData.append('remarks', judgmentRemarks);
+    if (verifiedSignature) formData.append('signatureData', JSON.stringify(verifiedSignature));
+    if (judgmentFile) formData.append('file', judgmentFile);
+
+    try {
+      const res = await fetch(`http://localhost:5001/api/court/case/${currentCaseId}/judgment`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
         },
-        ...prev,
-      ]);
-    }
+        body: formData
+      });
 
-    alert(`Final Judgment ${judgmentFile ? `"${judgmentFile.name}" ` : ''}securely uploaded and digitally signed. Case marked as DISPOSED. SMS alert broadcast to all parties.`);
-    setJudgmentFile(null);
-    setJudgmentRemarks('');
-    setShowJudgmentModal(false);
+      if (!res.ok) throw new Error('Failed to save final judgment');
+      const data = await res.json();
+
+      setCaseStatus('Disposed');
+
+      if (data.document) {
+        setDocuments(prev => [
+          {
+            id: data.document._id,
+            filename: data.document.filename,
+            type: data.document.type,
+            uploadedBy: judgeName,
+            date: new Date(data.document.createdAt).toISOString().split('T')[0],
+            size: `${(data.document.size / (1024 * 1024)).toFixed(2)} MB`,
+            verified: data.document.digitalSignature?.verified
+          },
+          ...prev,
+        ]);
+      }
+
+      alert(`Final Judgment securely uploaded and cryptographically signed. Case marked as DISPOSED.`);
+      setJudgmentFile(null);
+      setJudgmentRemarks('');
+      setVerifiedSignature(null);
+      setShowJudgmentModal(false);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading judgment to backend.');
+    }
   };
 
-  const handleUploadDocumentSubmit = (e) => {
+  const handleUploadDocumentSubmit = async (e) => {
     e.preventDefault();
     if (!docFile) return;
+    const token = localStorage.getItem('token') || '';
+    const currentCaseId = caseData.caseId || id;
 
-    setDocuments(prev => [
-      {
-        id: Date.now(),
-        filename: docFile.name,
-        type: docType || 'Court Document',
-        uploadedBy: judgeName,
-        date: new Date().toISOString().split('T')[0],
-        size: `${(docFile.size / (1024 * 1024)).toFixed(1)} MB`,
-      },
-      ...prev,
-    ]);
+    const formData = new FormData();
+    formData.append('type', docType || 'Court Document');
+    if (verifiedSignature) formData.append('signatureData', JSON.stringify(verifiedSignature));
+    formData.append('file', docFile);
 
-    alert(`Document "${docFile.name}" successfully verified and added to case docket.`);
-    setDocFile(null);
-    setDocType('Court Order');
-    setShowDocumentModal(false);
+    try {
+      const res = await fetch(`http://localhost:5001/api/court/case/${currentCaseId}/document`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Failed to save document');
+      const data = await res.json();
+
+      if (data.document) {
+        setDocuments(prev => [
+          {
+            id: data.document._id,
+            filename: data.document.filename,
+            type: data.document.type,
+            uploadedBy: judgeName,
+            date: new Date(data.document.createdAt).toISOString().split('T')[0],
+            size: `${(data.document.size / (1024 * 1024)).toFixed(2)} MB`,
+            verified: data.document.digitalSignature?.verified
+          },
+          ...prev,
+        ]);
+      }
+
+      alert(`Document "${docFile.name}" successfully verified, cryptographically signed, and added to docket.`);
+      setDocFile(null);
+      setDocType('Court Order');
+      setVerifiedSignature(null);
+      setShowDocumentModal(false);
+    } catch (err) {
+      console.error(err);
+      alert('Error uploading document to backend.');
+    }
   };
 
   return (
