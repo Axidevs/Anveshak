@@ -16,6 +16,7 @@ const {
   getCaseAuditLogs,
   getCaseStats,
   getTimeline,
+  analyzeCaseWithAI,
 } = require("../controllers/caseController");
 
 const router = express.Router();
@@ -29,8 +30,18 @@ router.post(
   createCaseFromFIR
 );
 
+// Analyze case with AI
 
-// Get cases
+router.post(
+  "/analyze",
+  protect,
+  allowRoles(
+    "POLICE",
+    "ADMIN",
+    "INVESTIGATING_AGENCY"
+  ),
+  analyzeCaseWithAI
+);
 router.get(
   "/",
   protect,

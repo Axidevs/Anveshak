@@ -1,11 +1,14 @@
-const express = require("express");
+
 const dotenv = require("dotenv");
+dotenv.config();
+const express = require("express");
 const cors = require("cors");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const firRoutes = require("./routes/firRoutes");
 const caseRoutes = require("./routes/caseRoutes");
+const evidenceRoutes = require("./routes/evidenceRoutes");
 
 dotenv.config();
 
@@ -17,6 +20,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/fir", firRoutes);
 app.use("/api/case", caseRoutes);
+app.use("/api/evidence", evidenceRoutes);
 
 app.get("/", (req, res) => {
   res.send("Anveshak Backend is running");

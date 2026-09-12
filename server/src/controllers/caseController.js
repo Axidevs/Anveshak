@@ -5,7 +5,7 @@ const AuditLog = require("../models/AuditLog");
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
 const { getCaseTimeline } = require("../services/timelineService");
-
+const { analyzeFIR } = require("../services/aiService");
 const createCaseFromFIR = async (req, res) => {
   try {
     const { firId } = req.body;
@@ -394,6 +394,74 @@ const getTimeline = async (req, res) => {
   }
 };
 
+const analyzeCaseWithAI = async (req, res) => {
+  try {
+    const { caseId } = req.body;
+
+    if (!caseId) {
+      return res.status(400).json({
+        message: "Case ID is required",
+      });
+    }
+
+    const existingCase = await Case.findOne({ caseId }).populate("firId");
+
+    if (!existingCase) {
+      return res.status(404).json({
+        message: "Case not found",
+      });
+    }
+
+    const fir = existingCase.firId;
+
+    if (!fir) {
+      return res.status(404).json({
+        message: "Case exists, but related FIR was not found",
+      });
+    }
+
+    // Return saved analysis if already available
+    if (existingCase.aiAnalysis) {
+      return res.status(200).json({
+        aiAnalysis: existingCase.aiAnalysis,
+        cached: true,
+        source: "mongodb",
+      });
+    }
+
+    const aiAnalysis = await analyzeFIR({
+      incidentDescription: fir.incidentDescription,
+      category: fir.category,
+      incidentLocation: fir.incidentLocation,
+      incidentDate: fir.incidentDate,
+    });
+
+    if (aiAnalysis.aiAvailable !== false) {
+      existingCase.aiAnalysis = aiAnalysis;
+      existingCase.priority = aiAnalysis.severity || "MEDIUM";
+
+      await existingCase.save();
+
+      console.log("AI analysis generated and saved:", caseId);
+    } else {
+      console.log("AI unavailable. MongoDB case was not updated:", caseId);
+    }
+
+    return res.status(200).json({
+      caseId,
+      aiAnalysis,
+      cached: false,
+      source: "gemini",
+    });
+  } catch (error) {
+    console.error("AI case analysis failed:", error);
+
+    return res.status(500).json({
+      message: "Failed to analyze case with AI",
+      error: error.message,
+    });
+  }
+};
 module.exports = {
   createCaseFromFIR,
   updateStatus,
@@ -403,4 +471,5 @@ module.exports = {
   getCaseAuditLogs,
   getCaseStats,
   getTimeline,
+  analyzeCaseWithAI,
 };
