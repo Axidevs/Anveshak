@@ -19,7 +19,19 @@ const saveDocument = async (req, caseId, type, signatureData) => {
   
   // Prepare digital signature data
   const sigData = signatureData || { method: "none" };
-  sigData.documentHash = documentHash;
+  
+  // RESTRICTION: Do not allow digital signatures for TXT or Video files
+  const mimeType = req.file.mimetype;
+  const isVideoOrText = mimeType.startsWith("video/") || mimeType === "text/plain";
+
+  if (isVideoOrText) {
+    sigData.method = "none";
+    sigData.verified = false;
+    delete sigData.documentHash;
+    delete sigData.cryptographicSeal;
+  } else {
+    sigData.documentHash = documentHash;
+  }
   
   if (sigData.method !== "none") {
     // Generate server-side cryptographic seal (HMAC) proving backend verified it
