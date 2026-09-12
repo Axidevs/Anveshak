@@ -28,6 +28,15 @@ module.exports = {
       
       socket.join(socket.user.userId.toString());
 
+      socket.on("joinCase", (caseId) => {
+        socket.join(`case_${caseId}`);
+        console.log(`User ${socket.user.userId} joined room case_${caseId}`);
+      });
+
+      socket.on("leaveCase", (caseId) => {
+        socket.leave(`case_${caseId}`);
+      });
+
       socket.on("disconnect", () => {
         console.log(`Socket disconnected: ${socket.id}`);
       });

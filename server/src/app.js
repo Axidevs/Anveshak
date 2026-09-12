@@ -32,6 +32,7 @@ app.use("/api/fir", firRoutes);
 app.use("/api/case", caseRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/court", courtRoutes);
+app.use("/api/chat", require("./routes/chatRoutes"));
 
 app.get("/", (req, res) => {
   res.send("Anveshak Backend is running");
