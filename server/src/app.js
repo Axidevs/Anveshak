@@ -8,6 +8,7 @@ const http = require("http");
 const connectDB = require("./config/db");
 const socketUtil = require("./utils/socket");
 const chatRoutes = require("./routes/chatRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 const authRoutes = require("./routes/authRoutes");
 const firRoutes = require("./routes/firRoutes");
@@ -26,6 +27,7 @@ app.use("/api/case", caseRoutes);
 app.use("/api/evidence", evidenceRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/v1/analytics", analyticsRoutes);
 
 app.get("/", (req, res) => {
   res.send("Anveshak Backend is running");
