@@ -13,6 +13,8 @@ const assignCase = async (req, res) => {
     }
 
     const caseData = await Case.findOne({ caseId });
+    console.log("CASE ASSIGNED TO:", caseData.assignedOfficer);
+console.log("CURRENT USER:", req.user.userId);
 
     if (!caseData) {
       return res.status(404).json({

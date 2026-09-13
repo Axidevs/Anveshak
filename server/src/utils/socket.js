@@ -50,12 +50,20 @@ module.exports = {
 
           const { role, userId } = socket.user;
 
-          const allowed =
-            role === "ADMIN" ||
-            (role === "CITIZEN" &&
-              caseRecord.citizenId?.toString() === userId) ||
-            (role === "POLICE" &&
-              caseRecord.assignedOfficer?.toString() === userId);
+          const INTERNAL_ROLES = [
+  "POLICE",
+  "INVESTIGATING_AGENCY",
+  "COURT",
+  "ADMIN",
+];
+
+const allowed =
+  INTERNAL_ROLES.includes(role) &&
+  (
+    role === "ADMIN" ||
+    role !== "POLICE" ||
+    caseRecord.assignedOfficer?.toString() === userId
+  );
 
           if (!allowed) {
             return socket.emit("chatError", {

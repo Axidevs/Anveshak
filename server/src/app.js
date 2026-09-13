@@ -1,3 +1,6 @@
+const dns = require("dns");
+dns.setDefaultResultOrder("ipv4first");
+
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -15,6 +18,8 @@ const firRoutes = require("./routes/firRoutes");
 const caseRoutes = require("./routes/caseRoutes");
 const evidenceRoutes = require("./routes/evidenceRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const signatureRoutes = require("./routes/signatureRoutes");
+const custodyRoutes = require("./routes/custodyRoutes");
 
 const app = express();
 
@@ -25,6 +30,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/fir", firRoutes);
 app.use("/api/case", caseRoutes);
 app.use("/api/evidence", evidenceRoutes);
+app.use("/api/evidence", signatureRoutes);
+app.use("/api/evidence", custodyRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/v1/analytics", analyticsRoutes);

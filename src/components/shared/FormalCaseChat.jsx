@@ -350,3 +350,21 @@ const FormalCaseChat = ({ caseId = 'CASE-0000', caseName = 'Untitled Case', curr
 };
 
 export default FormalCaseChat;
+exit
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

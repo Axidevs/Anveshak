@@ -1,17 +1,23 @@
-
-
 const Message = require("../models/Message");
 const Case = require("../models/Case");
+const User = require("../models/User");
 const { getIo } = require("../utils/socket");
 const { createNotification } = require("./notificationController");
 
+const INTERNAL_ROLES = [
+  "POLICE",
+  "INVESTIGATING_AGENCY",
+  "COURT",
+  "ADMIN",
+];
+
 const canAccessCase = (caseRecord, user) => {
-  if (user.role === "ADMIN") {
-    return true;
+  if (!INTERNAL_ROLES.includes(user.role)) {
+    return false;
   }
 
-  if (user.role === "CITIZEN") {
-    return caseRecord.citizenId.toString() === user.userId;
+  if (user.role === "ADMIN") {
+    return true;
   }
 
   if (user.role === "POLICE") {
@@ -21,7 +27,9 @@ const canAccessCase = (caseRecord, user) => {
     );
   }
 
-  return false;
+  // Other authorized internal departments can access
+  // case-linked collaboration.
+  return true;
 };
 
 exports.sendMessage = async (req, res) => {
@@ -45,7 +53,7 @@ exports.sendMessage = async (req, res) => {
 
     if (!canAccessCase(caseRecord, req.user)) {
       return res.status(403).json({
-        message: "You are not authorized to access this case",
+        message: "You are not authorized to access case collaboration",
       });
     }
 
@@ -55,32 +63,24 @@ exports.sendMessage = async (req, res) => {
       text: text.trim(),
     });
 
-    await newMessage.populate("senderId", "name role");
+    await newMessage.populate("senderId", "name role department");
 
     const io = getIo();
 
     io.to(`case_${caseId}`).emit("receiveMessage", newMessage);
-        // Notify the other participant
-    let recipientId = null;
 
-    if (
-      req.user.role === "POLICE" &&
-      caseRecord.citizenId
-    ) {
-      recipientId = caseRecord.citizenId;
-    } else if (
-      req.user.role === "CITIZEN" &&
-      caseRecord.assignedOfficer
-    ) {
-      recipientId = caseRecord.assignedOfficer;
-    }
+    // Notify authorized internal participants only.
+    const participants = await User.find({
+      _id: { $ne: req.user.userId },
+      role: { $in: INTERNAL_ROLES },
+    }).select("_id");
 
-    if (recipientId) {
+    for (const participant of participants) {
       await createNotification({
-        userId: recipientId,
+        userId: participant._id,
         caseId,
         type: "NEW_MESSAGE",
-        message: `New message received for case ${caseId}`,
+        message: `New internal collaboration message for case ${caseId}`,
       });
     }
 
@@ -111,13 +111,13 @@ exports.getMessages = async (req, res) => {
 
     if (!canAccessCase(caseRecord, req.user)) {
       return res.status(403).json({
-        message: "You are not authorized to access this case",
+        message: "You are not authorized to access case collaboration",
       });
     }
 
     const messages = await Message.find({ caseId })
       .sort({ createdAt: 1 })
-      .populate("senderId", "name role");
+      .populate("senderId", "name role department");
 
     res.status(200).json(messages);
   } catch (error) {
