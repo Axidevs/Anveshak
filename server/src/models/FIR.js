@@ -48,6 +48,16 @@ const firSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    aiAnalysis: {
+      classification: { type: String },
+      confidence: { type: Number },
+      summary: { type: String },
+      severity: { type: String, enum: ["LOW", "MEDIUM", "HIGH"] },
+      reasoning: { type: String },
+      keywords: [{ type: String }],
+      aiAvailable: { type: Boolean, default: false }
+    },
   },
   {
     timestamps: true,
