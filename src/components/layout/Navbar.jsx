@@ -36,12 +36,12 @@ export default function Navbar() {
   const logoColor = 'text-navy';
 
   const navLinks = [
-    { href: '/#about', label: 'About' },
-    { href: '/#help', label: 'Help & Support' },
-    { href: '/#how-it-works', label: t('nav.howItWorks') },
-    { href: '/#citizens', label: t('nav.forCitizens') },
-    { href: '/#officers', label: t('nav.forOfficers') },
-    { href: '/#courts', label: t('nav.forCourts') },
+    { href: '/home#about', label: 'About' },
+    { href: '/home#help', label: 'Help & Support' },
+    { href: '/home#how-it-works', label: t('nav.howItWorks') },
+    { href: '/home#citizens', label: t('nav.forCitizens') },
+    { href: '/home#officers', label: t('nav.forOfficers') },
+    { href: '/home#courts', label: t('nav.forCourts') },
   ];
 
   const getDashboardPath = () => {
@@ -68,29 +68,23 @@ export default function Navbar() {
       {/* Main Navigation Tier */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 lg:h-20">
-          {/* Logo */}
-          <Link
-            to="/"
-            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-            className={`flex items-center gap-3 ${logoColor} transition-colors duration-300 group`}
-            aria-label="Nyaya Setu Home"
-          >
-            {/* Ashoka Chakra inspired emblem */}
-            <div className="relative w-10 h-10 flex-shrink-0">
-              <div className="w-10 h-10 rounded-full border-2 border-navy flex items-center justify-center transition-colors shadow-sm bg-white">
-                <Scale className="w-5 h-5 text-navy" strokeWidth={2.5} />
+            {/* Logo */}
+            <Link
+              to="/home"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className={`flex items-center gap-3 transition-colors duration-300 group`}
+              aria-label="Anveshak Home"
+            >
+              <img src="/logo.jpg" alt="Anveshak Logo" className="w-16 h-16 object-contain" />
+              <div className="flex flex-col leading-none border-l-2 border-gray-300 pl-3">
+                <span className="text-xl font-bold tracking-tight text-gray-900">अन्वेषक</span>
+                <span className="text-xs font-bold text-gray-600 tracking-wider uppercase">Anveshak</span>
               </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-orange-500 shadow-sm border-2 border-white transition-colors" />
-            </div>
-            <div className="flex flex-col leading-none border-l-2 border-gray-300 pl-3">
-              <span className="text-xl font-bold tracking-tight text-gray-900">न्याय सेतु</span>
-              <span className="text-xs font-bold text-gray-600 tracking-wider uppercase">Nyaya Setu</span>
-            </div>
-          </Link>
+            </Link>
 
           {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center gap-1">
-            { navLinks.map((link) => (
+            {!isAuthenticated && navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -193,12 +187,12 @@ export default function Navbar() {
               <Globe className="w-4 h-4" />
               {language === 'en' ? 'हिन्दी (Hindi)' : 'English'}
             </button>
-            <a href="#about" className="px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
-              About NyayaSetu
+            <a href="/home#about" className="px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
+              About Anveshak
             </a>
           </div>
 
-          {navLinks.map((link) => (
+          {!isAuthenticated && navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}

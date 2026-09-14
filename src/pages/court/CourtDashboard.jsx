@@ -1,532 +1,158 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { mockCourtCases } from '../../data/mockData';
 import Breadcrumb from '../../components/layout/Breadcrumb';
 import { Link } from 'react-router-dom';
-import {
-  Scale,
-  FileText,
-  Calendar,
-  Bell,
-  ChevronRight,
-  Clock,
-  AlertCircle
-} from 'lucide-react';
-import { apiFetch } from '../../utils/api';
+import { Scale, Users, FileText, Calendar, Bell, ChevronRight, Clock, AlertCircle, Briefcase } from 'lucide-react';
 
 const CourtDashboard = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
 
-  const [cases, setCases] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // ======================================================
-  // LOAD COURT CASES
-  // ======================================================
-
-  useEffect(() => {
-    const loadCourtCases = async () => {
-      try {
-        setLoading(true);
-
-        const response = await apiFetch('/case');
-
-        const caseList = Array.isArray(response)
-          ? response
-          : response?.cases ||
-            response?.data?.cases ||
-            response?.data ||
-            [];
-
-        setCases(Array.isArray(caseList) ? caseList : []);
-      } catch (error) {
-        console.error('Failed to load court cases:', error);
-        setCases([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCourtCases();
-  }, []);
-
-  // ======================================================
-  // HELPERS
-  // ======================================================
-
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-
-    const parsed = new Date(date);
-
-    if (Number.isNaN(parsed.getTime())) {
-      return 'N/A';
-    }
-
-    return parsed.toLocaleDateString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const getCaseId = (caseItem) => {
-    return (
-      caseItem?.caseId ||
-      caseItem?.id ||
-      caseItem?._id ||
-      'N/A'
-    );
-  };
-
-  const getCaseTitle = (caseItem) => {
-    return (
-      caseItem?.title ||
-      caseItem?.caseTitle ||
-      caseItem?.firId?.firNumber ||
-      caseItem?.firNumber ||
-      'Case Record'
-    );
-  };
-
-  const getCaseType = (caseItem) => {
-    return (
-      caseItem?.type ||
-      caseItem?.category ||
-      caseItem?.firId?.category ||
-      caseItem?.aiAnalysis?.classification ||
-      'General'
-    );
-  };
-
-  const getCaseStatus = (caseItem) => {
-    return caseItem?.status || 'UNDER_REVIEW';
-  };
-
-  const isActiveCase = (caseItem) => {
-    return getCaseStatus(caseItem) !== 'RESOLVED';
-  };
-
-  // ======================================================
-  // COURT CASE FILTER
-  // ======================================================
-
-  const courtCases = cases.filter((caseItem) => {
-    const status = getCaseStatus(caseItem);
-
-    return (
-      status === 'COURT_PROCEEDINGS' ||
-      caseItem?.court ||
-      caseItem?.courtDetails
-    );
-  });
-
-  // If no case has reached court stage yet,
-  // show available cases so the dashboard is not empty.
-  const displayedCases =
-    courtCases.length > 0
-      ? courtCases
-      : cases;
-
-  const activeCases = displayedCases.filter(isActiveCase);
-
-  // ======================================================
-  // UPCOMING HEARINGS
-  // ======================================================
-
-  const upcomingHearings = displayedCases
-    .slice(0, 3)
-    .map((caseItem) => ({
-      ...caseItem,
-
-      hearingDate:
-        caseItem?.hearingDate ||
-        caseItem?.nextHearingDate ||
-        caseItem?.updatedAt ||
-        caseItem?.createdAt,
-
-      time:
-        caseItem?.hearingTime ||
-        caseItem?.nextHearingTime ||
-        null
-    }));
-
-  const nextHearing = upcomingHearings[0];
-
-  // ======================================================
-  // RENDER
-  // ======================================================
+  // "Today's Cause List" filtering logic (simulated for today)
+  const [todaysCauseList] = useState([
+    { id: 'ANV-2026-0342', title: 'State vs. Rohit Mehra & Anr.', hearingDate: 'Sept 10, 2026', time: '10:30 AM', category: 'Hearing' },
+    { id: 'ANV-2026-0298', title: 'State vs. Cyber Fraud Syndicate', hearingDate: 'Sept 10, 2026', time: '11:00 AM', category: 'Arguments' },
+    { id: 'ANV-2026-1045', title: 'State vs. Rahul Verma', hearingDate: 'Sept 10, 2026', time: '02:00 PM', category: 'Judgment' }
+  ]);
 
   return (
     <div className="space-y-6">
-
-      <Breadcrumb
-        items={[
-          {
-            label:
-              t('courtDashboard') ||
-              'Court Dashboard',
-            path: '/court'
-          }
-        ]}
-      />
-
-      {/* Header */}
-
+      <Breadcrumb items={[{ label: t('courtDashboard') || 'Court Dashboard', path: '/court' }]} />
+      
       <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-
         <div>
-
-          <h1 className="text-2xl font-bold text-navy mb-1">
-            Welcome back, Honorable{' '}
-            {user?.name || 'Judge'}
+          <h1 className="text-2xl font-bold text-[#0B3D91] mb-1">
+            Welcome back, Honorable {user?.name || 'Judge'}
           </h1>
-
-          <p className="text-charcoal/70">
-            {t('overviewText') ||
-              'Here is the overview of your court docket today.'}
+          <p className="text-[#1A1A1A]/70">
+            {t('overviewText') || 'Here is the overview of your court docket today.'}
           </p>
-
         </div>
-
         <div className="hidden sm:block text-right">
-
-          <p className="text-sm text-charcoal/60">
-            Current Date
-          </p>
-
-          <p className="font-semibold text-charcoal">
-            {formatDate(new Date())}
-          </p>
-
+          <p className="text-sm text-[#1A1A1A]/60">Current Date</p>
+          <p className="font-semibold text-[#1A1A1A]">Sept 10, 2026</p>
         </div>
-
       </div>
-
-      {/* Stats */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-
-        {/* Cases on Docket */}
-
-        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-navy hover:-translate-y-1 transition-all duration-300">
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-[#0B3D91] hover:-translate-y-1 transition-all duration-300">
           <div className="flex justify-between items-start">
-
             <div>
-
-              <p className="text-sm font-medium text-charcoal/60">
-                Cases on Docket
-              </p>
-
-              <h3 className="text-2xl font-bold text-navy mt-1">
-                {loading ? '—' : displayedCases.length}
-              </h3>
-
+              <p className="text-sm font-medium text-[#1A1A1A]/60">Cases on Docket</p>
+              <h3 className="text-2xl font-bold text-[#0B3D91] mt-1">12</h3>
             </div>
-
-            <div className="bg-navy-50 p-2 rounded-lg text-navy">
+            <div className="bg-[#0B3D91]/10 p-2 rounded-lg text-[#0B3D91]">
               <Scale size={20} />
             </div>
-
           </div>
-
         </div>
-
-        {/* Next Hearing */}
-
-        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-saffron hover:-translate-y-1 transition-all duration-300">
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-purple-600 hover:-translate-y-1 transition-all duration-300">
           <div className="flex justify-between items-start">
-
             <div>
-
-              <p className="text-sm font-medium text-charcoal/60">
-                Next Hearing
-              </p>
-
-              <h3 className="text-xl font-bold text-saffron mt-1">
-
-                {loading
-                  ? '—'
-                  : nextHearing?.hearingDate
-                    ? formatDate(
-                        nextHearing.hearingDate
-                      )
-                    : 'Not Scheduled'}
-
-              </h3>
-
+              <p className="text-sm font-medium text-[#1A1A1A]/60">Today's Hearings</p>
+              <h3 className="text-xl font-bold text-purple-600 mt-1">3</h3>
             </div>
-
-            <div className="bg-saffron-50 p-2 rounded-lg text-saffron">
+            <div className="bg-purple-100 p-2 rounded-lg text-purple-600">
               <Calendar size={20} />
             </div>
-
           </div>
-
         </div>
-
-        {/* Pending Orders */}
-
-        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-alert hover:-translate-y-1 transition-all duration-300">
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 hover:-translate-y-1 transition-all duration-300">
           <div className="flex justify-between items-start">
-
             <div>
-
-              <p className="text-sm font-medium text-charcoal/60">
-                Pending Orders
-              </p>
-
-              <h3 className="text-2xl font-bold text-alert mt-1">
-                —
-              </h3>
-
+              <p className="text-sm font-medium text-[#1A1A1A]/60">Pending Orders</p>
+              <h3 className="text-2xl font-bold text-red-500 mt-1">2</h3>
             </div>
-
-            <div className="bg-red-50 p-2 rounded-lg text-alert">
+            <div className="bg-red-50 p-2 rounded-lg text-red-500">
               <AlertCircle size={20} />
             </div>
-
           </div>
-
         </div>
-
-        {/* Active Cases */}
-
-        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-forest hover:-translate-y-1 transition-all duration-300">
-
+        <div className="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-600 hover:-translate-y-1 transition-all duration-300">
           <div className="flex justify-between items-start">
-
             <div>
-
-              <p className="text-sm font-medium text-charcoal/60">
-                Active Cases
-              </p>
-
-              <h3 className="text-2xl font-bold text-forest mt-1">
-                {loading ? '—' : activeCases.length}
-              </h3>
-
+              <p className="text-sm font-medium text-[#1A1A1A]/60">Disposed (Month)</p>
+              <h3 className="text-2xl font-bold text-green-600 mt-1">8</h3>
             </div>
-
-            <div className="bg-green-50 p-2 rounded-lg text-forest">
+            <div className="bg-green-50 p-2 rounded-lg text-green-600">
               <FileText size={20} />
             </div>
-
           </div>
-
         </div>
-
       </div>
-
-      {/* Upcoming Hearings */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-
           <div className="flex justify-between items-center mb-6">
-
-            <h2 className="text-lg font-bold text-navy">
-              Upcoming Hearings
-            </h2>
-
-            <Link
-              to="/court/proceedings"
-              className="text-sm font-medium text-navy hover:text-navy-700 flex items-center"
-            >
-              View Calendar
-              <ChevronRight size={16} />
+            <h2 className="text-lg font-bold text-[#0B3D91]">Today's Cause List</h2>
+            <Link to="/court/proceedings" className="text-sm font-medium text-[#0B3D91] hover:text-[#0B3D91]/80 flex items-center">
+              View Calendar <ChevronRight size={16} />
             </Link>
-
           </div>
-
+          
           <div className="space-y-4">
-
-            {loading ? (
-
-              <div className="py-8 text-center text-charcoal/60">
-                Loading court cases...
-              </div>
-
-            ) : upcomingHearings.length === 0 ? (
-
-              <div className="py-8 text-center text-charcoal/60">
-                No cases available.
-              </div>
-
+            {todaysCauseList.length === 0 ? (
+              <p className="text-[#1A1A1A]/60">No hearings scheduled for today.</p>
             ) : (
-
-              upcomingHearings.map((hearing, idx) => {
-
-                const hearingDate =
-                  hearing.hearingDate
-                    ? new Date(hearing.hearingDate)
-                    : null;
-
-                const month =
-                  hearingDate &&
-                  !Number.isNaN(
-                    hearingDate.getTime()
-                  )
-                    ? hearingDate.toLocaleDateString(
-                        'en-IN',
-                        {
-                          month: 'short'
-                        }
-                      )
-                    : '—';
-
-                const day =
-                  hearingDate &&
-                  !Number.isNaN(
-                    hearingDate.getTime()
-                  )
-                    ? hearingDate.getDate()
-                    : '—';
-
-                return (
-
-                  <div
-                    key={
-                      getCaseId(hearing) ||
-                      idx
-                    }
-                    className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-cream rounded-lg border border-gray-100 hover:border-gray-300 transition-colors"
-                  >
-
-                    <div className="flex items-start gap-4">
-
-                      <div className="bg-white border border-gray-200 p-2 rounded-lg flex flex-col items-center justify-center min-w-[70px]">
-
-                        <span className="text-xs text-charcoal/60 font-semibold">
-                          {month}
-                        </span>
-
-                        <span className="text-lg font-bold text-navy">
-                          {day}
-                        </span>
-
-                      </div>
-
-                      <div>
-
-                        <h4 className="font-semibold text-charcoal">
-                          {getCaseTitle(hearing)}
-                        </h4>
-
-                        <p className="text-sm text-charcoal/70 flex items-center gap-1 mt-1">
-
-                          <Clock size={14} />
-
-                          {hearing.time ||
-                            'Time not scheduled'}
-
-                          {' • '}
-
-                          {getCaseType(hearing)}
-
-                        </p>
-
-                      </div>
-
+              todaysCauseList.map((hearing, idx) => (
+                <div key={idx} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-[#FAF8F5] rounded-lg border border-gray-100 hover:border-gray-300 transition-colors">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-white border border-gray-200 p-2 rounded-lg flex flex-col items-center justify-center min-w-[70px]">
+                      <span className="text-xs text-[#1A1A1A]/60 font-semibold">Time</span>
+                      <span className="text-sm font-bold text-[#0B3D91] whitespace-nowrap">{hearing.time}</span>
                     </div>
-
-                    <div className="mt-3 sm:mt-0 flex items-center gap-3">
-
-                      <span className="inline-block px-3 py-1 bg-navy-50 text-navy text-xs font-medium rounded-full">
-                        {getCaseId(hearing)}
-                      </span>
-
-                      <Link
-                        to={`/court/cases/${getCaseId(
-                          hearing
-                        )}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-navy hover:text-navy-700 bg-white border border-navy-100 px-3 py-1.5 rounded-lg hover:bg-navy-50 transition-colors"
-                      >
-                        View Details
-                      </Link>
-
+                    <div>
+                      <h4 className="font-semibold text-[#1A1A1A]">{hearing.title}</h4>
+                      <p className="text-sm text-[#1A1A1A]/70 flex items-center gap-1 mt-1">
+                        <Scale size={14} /> Case ID: {hearing.id} ? {hearing.category}
+                      </p>
                     </div>
-
                   </div>
-
-                );
-
-              })
-
+                  <div className="mt-3 sm:mt-0 flex items-center gap-3">
+                    <Link 
+                      to={`/court/cases/${hearing.id}`} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm font-medium text-[#0B3D91] hover:text-white bg-white border border-[#0B3D91]/20 px-3 py-1.5 rounded-lg hover:bg-[#0B3D91] transition-colors whitespace-nowrap"
+                    >
+                      Open Case ↗
+                    </Link>
+                  </div>
+                </div>
+              ))
             )}
-
           </div>
-
         </div>
-
-        {/* Quick Links */}
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-
-          <h2 className="text-lg font-bold text-navy mb-6">
-            Quick Links
-          </h2>
-
+          <h2 className="text-lg font-bold text-[#0B3D91] mb-6">Quick Links</h2>
+          
           <div className="space-y-3">
-
-            <Link
-              to="/court/documents"
-              className="flex items-center gap-3 p-4 rounded-lg bg-cream hover:bg-navy-50 text-charcoal hover:text-navy transition-colors group"
-            >
-
-              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-navy group-hover:text-white transition-colors">
-                <FileText size={18} />
+            <Link to="/court/cases" className="flex items-center gap-3 p-4 rounded-lg bg-[#FAF8F5] hover:bg-[#0B3D91]/5 text-[#1A1A1A] hover:text-[#0B3D91] transition-colors group">
+              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-[#0B3D91] group-hover:text-white transition-colors">
+                <Briefcase size={18} />
               </div>
-
-              <span className="font-medium">
-                View Documents
-              </span>
-
+              <span className="font-medium">My Cases</span>
             </Link>
-
-            <Link
-              to="/court/proceedings"
-              className="flex items-center gap-3 p-4 rounded-lg bg-cream hover:bg-navy-50 text-charcoal hover:text-navy transition-colors group"
-            >
-
-              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-navy group-hover:text-white transition-colors">
+            
+            <Link to="/court/proceedings" className="flex items-center gap-3 p-4 rounded-lg bg-[#FAF8F5] hover:bg-[#0B3D91]/5 text-[#1A1A1A] hover:text-[#0B3D91] transition-colors group">
+              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-[#0B3D91] group-hover:text-white transition-colors">
                 <Calendar size={18} />
               </div>
-
-              <span className="font-medium">
-                Proceedings & Calendar
-              </span>
-
+              <span className="font-medium">Legal Proceedings</span>
             </Link>
-
-            <Link
-              to="/court/alerts"
-              className="flex items-center gap-3 p-4 rounded-lg bg-cream hover:bg-navy-50 text-charcoal hover:text-navy transition-colors group"
-            >
-
-              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-navy group-hover:text-white transition-colors">
+            
+            <Link to="/court/alerts" className="flex items-center gap-3 p-4 rounded-lg bg-[#FAF8F5] hover:bg-[#0B3D91]/5 text-[#1A1A1A] hover:text-[#0B3D91] transition-colors group">
+              <div className="bg-white p-2 rounded-md shadow-sm group-hover:bg-[#0B3D91] group-hover:text-white transition-colors">
                 <Bell size={18} />
               </div>
-
-              <span className="font-medium">
-                Alert Settings
-              </span>
-
+              <span className="font-medium">Alert Settings</span>
             </Link>
-
           </div>
-
         </div>
-
       </div>
-
     </div>
   );
 };

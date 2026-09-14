@@ -50,7 +50,7 @@ const CitizenRegister = () => {
       <div className="w-full max-w-xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-bold text-navy mb-2">Citizen Registration</h1>
-          <p className="text-charcoal/70">Create your secure Nyaya Setu account</p>
+          <p className="text-charcoal/70">Create your secure Anveshak account</p>
         </div>
 
         {/* Stepper */}
@@ -129,7 +129,7 @@ const CitizenRegister = () => {
             <div className="space-y-6 text-center animate-in fade-in slide-in-from-right-4">
               <h2 className="text-xl font-bold text-navy mb-2">Identity Verification</h2>
               <p className="text-sm text-charcoal/70 mb-8">
-                Nyaya Setu requires verified identity using DigiLocker to ensure authentic access to legal documents.
+                Anveshak requires verified identity using DigiLocker to ensure authentic access to legal documents.
               </p>
               
               {loading ? (
@@ -184,7 +184,7 @@ const CitizenRegister = () => {
               <div className="flex items-start gap-2 pt-2">
                 <input type="checkbox" required className="mt-1 rounded text-navy focus:ring-navy" id="tc" />
                 <label htmlFor="tc" className="text-sm text-charcoal/70">
-                  I confirm these details are correct and agree to the <a href="#" className="text-navy font-bold hover:underline">Terms & Conditions</a> of Nyaya Setu.
+                  I confirm these details are correct and agree to the <a href="#" className="text-navy font-bold hover:underline">Terms & Conditions</a> of Anveshak.
                 </label>
               </div>
 

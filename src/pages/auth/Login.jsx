@@ -135,7 +135,7 @@ const handleIdUpload = async (e) => {
               <Scale size={40} />
             </div>
             
-            <h1 className="text-3xl font-serif font-bold text-navy mb-2">Welcome to Nyaya Setu</h1>
+            <h1 className="text-3xl font-serif font-bold text-navy mb-2">Welcome to Anveshak</h1>
             <p className="text-charcoal/80 mb-10 font-medium">Digital Justice Platform — Government of India</p>
 
             {isVerifying ? (
