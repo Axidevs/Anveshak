@@ -5,6 +5,7 @@ const {
 } = require("../controllers/assignmentController");
 
 const protect = require("../middleware/authMiddleware");
+
 const allowRoles = require("../middleware/roleMiddleware");
 
 const {
@@ -21,16 +22,24 @@ const {
 
 const router = express.Router();
 
+// ======================================================
+// CREATE CASE FROM FIR
+// ======================================================
 
-// Create case from FIR
 router.post(
   "/",
   protect,
-  allowRoles("CITIZEN", "POLICE", "ADMIN"),
+  allowRoles(
+    "CITIZEN",
+    "POLICE",
+    "ADMIN"
+  ),
   createCaseFromFIR
 );
 
-// Analyze case with AI
+// ======================================================
+// ANALYZE CASE WITH AI
+// ======================================================
 
 router.post(
   "/analyze",
@@ -42,6 +51,11 @@ router.post(
   ),
   analyzeCaseWithAI
 );
+
+// ======================================================
+// GET ALL CASES
+// ======================================================
+
 router.get(
   "/",
   protect,
@@ -55,8 +69,10 @@ router.get(
   getAllCases
 );
 
+// ======================================================
+// GET ASSIGNED CASES
+// ======================================================
 
-// Get assigned cases
 router.get(
   "/assigned-to-me",
   protect,
@@ -64,26 +80,39 @@ router.get(
   getAssignedCases
 );
 
+// ======================================================
+// DASHBOARD STATISTICS
+// ======================================================
 
-// Dashboard statistics
 router.get(
   "/stats",
   protect,
-  allowRoles("POLICE", "ADMIN", "INVESTIGATING_AGENCY"),
+  allowRoles(
+    "POLICE",
+    "ADMIN",
+    "INVESTIGATING_AGENCY"
+  ),
   getCaseStats
 );
 
+// ======================================================
+// UPDATE CASE STATUS
+// ======================================================
 
-// Update case status
 router.patch(
   "/status",
   protect,
-  allowRoles("POLICE", "ADMIN"),
+  allowRoles(
+    "POLICE",
+    "ADMIN"
+  ),
   updateStatus
 );
 
+// ======================================================
+// CASE TIMELINE
+// ======================================================
 
-// Case timeline
 router.get(
   "/:caseId/timeline",
   protect,
@@ -97,8 +126,10 @@ router.get(
   getTimeline
 );
 
+// ======================================================
+// CASE AUDIT HISTORY
+// ======================================================
 
-// Case audit history
 router.get(
   "/:caseId/audit",
   protect,
@@ -112,8 +143,10 @@ router.get(
   getCaseAuditLogs
 );
 
+// ======================================================
+// SINGLE CASE
+// ======================================================
 
-// Single case
 router.get(
   "/:caseId",
   protect,
@@ -127,14 +160,18 @@ router.get(
   getSingleCase
 );
 
+// ======================================================
+// SMART CASE ASSIGNMENT
+// ======================================================
 
-// Smart case assignment
 router.patch(
   "/assign",
   protect,
-  allowRoles("POLICE", "ADMIN"),
+  allowRoles(
+    "POLICE",
+    "ADMIN"
+  ),
   assignCase
 );
-
 
 module.exports = router;

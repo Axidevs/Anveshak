@@ -1,10 +1,12 @@
 const FIR = require("../models/FIR");
 
 
+// ===============================
+// CREATE FIR
+// ===============================
 const createFIR = async (req, res) => {
   try {
     const {
-      firNumber,
       complainant,
       incidentDescription,
       incidentDate,
@@ -12,8 +14,13 @@ const createFIR = async (req, res) => {
       category,
     } = req.body;
 
+    // Generate FIR number automatically
+    const firNumber = `FIR-${new Date().getFullYear()}-${Date.now()
+      .toString()
+      .slice(-6)}`;
+
+    // Validate required details
     if (
-      !firNumber ||
       !complainant ||
       !incidentDescription ||
       !incidentDate ||
@@ -25,6 +32,7 @@ const createFIR = async (req, res) => {
       });
     }
 
+    // Check duplicate FIR number
     const existingFIR = await FIR.findOne({ firNumber });
 
     if (existingFIR) {
@@ -33,6 +41,7 @@ const createFIR = async (req, res) => {
       });
     }
 
+    // Create FIR
     const fir = await FIR.create({
       firNumber,
       complainant,
@@ -48,6 +57,8 @@ const createFIR = async (req, res) => {
       fir,
     });
   } catch (error) {
+    console.error("CREATE FIR ERROR:", error);
+
     res.status(500).json({
       message: "Failed to create FIR",
       error: error.message,
@@ -56,6 +67,9 @@ const createFIR = async (req, res) => {
 };
 
 
+// ===============================
+// GET SINGLE FIR
+// ===============================
 const getFIR = async (req, res) => {
   try {
     const fir = await FIR.findById(req.params.firId)
@@ -70,9 +84,12 @@ const getFIR = async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.userId.toString();
 
-    // Citizen → only their own FIR
+    // Citizen can access only their own FIR
     if (userRole === "CITIZEN") {
-      if (fir.createdBy._id.toString() !== userId) {
+      if (
+        !fir.createdBy ||
+        fir.createdBy._id.toString() !== userId
+      ) {
         return res.status(403).json({
           message: "You can only access your own FIR",
         });
@@ -83,6 +100,8 @@ const getFIR = async (req, res) => {
       fir,
     });
   } catch (error) {
+    console.error("GET FIR ERROR:", error);
+
     res.status(500).json({
       message: "Failed to fetch FIR",
       error: error.message,
@@ -91,6 +110,9 @@ const getFIR = async (req, res) => {
 };
 
 
+// ===============================
+// GET MY FIRs
+// ===============================
 const getMyFIRs = async (req, res) => {
   try {
     const firs = await FIR.find({
@@ -102,6 +124,8 @@ const getMyFIRs = async (req, res) => {
       firs,
     });
   } catch (error) {
+    console.error("GET MY FIRs ERROR:", error);
+
     res.status(500).json({
       message: "Failed to fetch FIRs",
       error: error.message,
@@ -110,6 +134,9 @@ const getMyFIRs = async (req, res) => {
 };
 
 
+// ===============================
+// EXPORTS
+// ===============================
 module.exports = {
   createFIR,
   getFIR,

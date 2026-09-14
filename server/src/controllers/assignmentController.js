@@ -27,7 +27,17 @@ console.log("CURRENT USER:", req.user.userId);
         message: "Case is already assigned",
       });
     }
-
+if (
+  req.user.role === "POLICE" &&
+  req.user.jurisdiction &&
+  caseData.jurisdiction &&
+  req.user.jurisdiction.toLowerCase().trim() !==
+    caseData.jurisdiction.toLowerCase().trim()
+) {
+  return res.status(403).json({
+    message: "You cannot assign cases outside your jurisdiction",
+  });
+}
     const officer = await findBestOfficer(
       caseData.jurisdiction,
       null

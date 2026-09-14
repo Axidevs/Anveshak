@@ -2,12 +2,22 @@ const FIR = require("../models/FIR");
 const Case = require("../models/Case");
 const User = require("../models/User");
 const AuditLog = require("../models/AuditLog");
+const Evidence = require("../models/Evidence");
 
 const generateCaseId = require("../services/caseIdService");
 const { updateCaseStatus } = require("../services/caseLifecycleService");
-const { getCaseTimeline } = require("../services/timelineService");
+
+const {
+  getCaseTimeline,
+  createTimelineEvent,
+} = require("../services/timelineService");
+
 const { analyzeFIR } = require("../services/aiService");
 
+const {
+  findBestOfficer,
+  normalizeJurisdiction,
+} = require("../services/assignmentService");
 
 // ======================================================
 // CREATE CASE FROM FIR
@@ -53,22 +63,74 @@ const createCaseFromFIR = async (req, res) => {
 
     const caseId = await generateCaseId();
 
+    // Normalize FIR location into jurisdiction
+    const jurisdiction = normalizeJurisdiction(
+      fir.incidentLocation
+    );
+
+    // Create Case
     const newCase = await Case.create({
       caseId,
       firId,
       citizenId: fir.createdBy,
-      jurisdiction: fir.incidentLocation || null,
+      jurisdiction,
       status: "FIR_REGISTERED",
     });
 
-    // Audit log
+    // Audit: case created
     await AuditLog.create({
+      userId: req.user.userId,
       caseId,
       action: "CASE_CREATED",
-      performedBy: req.user.userId,
-      role: req.user.role,
-      details: "Case created from FIR",
+      description: "Case created from FIR",
+      verificationStatus: "VERIFIED",
     });
+
+    // ==================================================
+    // AUTO ASSIGN CASE
+    // ==================================================
+
+    const officer = await findBestOfficer(
+      jurisdiction,
+      null
+    );
+
+    if (officer) {
+      newCase.assignedOfficer = officer._id;
+      newCase.status = "ASSIGNED";
+
+      await newCase.save();
+
+      // Increase officer workload
+      officer.workload = (officer.workload || 0) + 1;
+      await officer.save();
+
+      // Timeline event
+      await createTimelineEvent({
+        caseId: newCase.caseId,
+        status: "ASSIGNED",
+        action: "CASE_ASSIGNED",
+        performedBy: req.user.userId,
+        description: `Case automatically assigned to ${officer.name}`,
+      });
+
+      // Assignment audit
+      await AuditLog.create({
+        userId: req.user.userId,
+        caseId: newCase.caseId,
+        action: "CASE_ASSIGNED",
+        description: `Case automatically assigned to ${officer.name}`,
+        verificationStatus: "VERIFIED",
+      });
+
+      console.log(
+        `Case ${newCase.caseId} automatically assigned to ${officer.name}`
+      );
+    } else {
+      console.log(
+        `No available officer found for jurisdiction: ${jurisdiction}`
+      );
+    }
 
     return res.status(201).json({
       message: "Case created successfully",
@@ -83,7 +145,6 @@ const createCaseFromFIR = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // UPDATE CASE STATUS
@@ -120,29 +181,27 @@ const updateStatus = async (req, res) => {
       }
     }
 
-    const oldStatus = caseData.status;
+    // Lifecycle service handles:
+    // 1. Transition validation
+    // 2. Case status update
+    // 3. Timeline entry
+    // 4. Audit log
 
     const updatedCase = await updateCaseStatus(
       caseId,
       status,
-      userId,
-      req.user.role
+      userId
     );
-
-    await AuditLog.create({
-      caseId,
-      action: "STATUS_UPDATED",
-      performedBy: userId,
-      role: req.user.role,
-      details: `Case status changed from ${oldStatus} to ${status}`,
-    });
 
     return res.status(200).json({
       message: "Case status updated successfully",
       case: updatedCase,
     });
   } catch (error) {
-    console.error("Case status update failed:", error);
+    console.error(
+      "Case status update failed:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to update case status",
@@ -150,7 +209,6 @@ const updateStatus = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // ASSIGN CASE
@@ -185,6 +243,19 @@ const assignCase = async (req, res) => {
       });
     }
 
+    // Police cannot assign outside their jurisdiction
+    if (
+      req.user.role === "POLICE" &&
+      req.user.jurisdiction &&
+      caseData.jurisdiction &&
+      req.user.jurisdiction.toLowerCase().trim() !==
+        caseData.jurisdiction.toLowerCase().trim()
+    ) {
+      return res.status(403).json({
+        message: "You cannot assign cases outside your jurisdiction",
+      });
+    }
+
     caseData.assignedOfficer = officer._id;
 
     if (caseData.status === "FIR_REGISTERED") {
@@ -194,11 +265,11 @@ const assignCase = async (req, res) => {
     await caseData.save();
 
     await AuditLog.create({
+      userId: req.user.userId,
       caseId,
       action: "CASE_ASSIGNED",
-      performedBy: req.user.userId,
-      role: req.user.role,
-      details: `Case assigned to ${officer.name}`,
+      description: `Case assigned to ${officer.name}`,
+      verificationStatus: "VERIFIED",
     });
 
     return res.status(200).json({
@@ -206,7 +277,10 @@ const assignCase = async (req, res) => {
       case: caseData,
     });
   } catch (error) {
-    console.error("Case assignment failed:", error);
+    console.error(
+      "Case assignment failed:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to assign case",
@@ -214,7 +288,6 @@ const assignCase = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // GET ALL CASES
@@ -239,7 +312,10 @@ const getAllCases = async (req, res) => {
 
     const cases = await Case.find(query)
       .populate("citizenId", "name email")
-      .populate("assignedOfficer", "name email role")
+      .populate(
+        "assignedOfficer",
+        "name email role"
+      )
       .populate("firId")
       .sort({ createdAt: -1 });
 
@@ -248,7 +324,10 @@ const getAllCases = async (req, res) => {
       cases,
     });
   } catch (error) {
-    console.error("Failed to fetch cases:", error);
+    console.error(
+      "Failed to fetch cases:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch cases",
@@ -256,7 +335,6 @@ const getAllCases = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // GET SINGLE CASE
@@ -270,10 +348,12 @@ const getSingleCase = async (req, res) => {
 
     const caseData = await Case.findOne({ caseId })
       .populate("citizenId", "name email")
-      .populate("assignedOfficer", "name email role")
+      .populate(
+        "assignedOfficer",
+        "name email role"
+      )
       .populate("firId");
-console.log("CURRENT ASSIGNED OFFICER:", caseData.assignedOfficer);
-console.log("REQUESTED OFFICER:", officerId);
+
     if (!caseData) {
       return res.status(404).json({
         message: "Case not found",
@@ -283,7 +363,8 @@ console.log("REQUESTED OFFICER:", officerId);
     // Citizen → own cases only
     if (
       role === "CITIZEN" &&
-      caseData.citizenId._id.toString() !== userId.toString()
+      caseData.citizenId._id.toString() !==
+        userId.toString()
     ) {
       return res.status(403).json({
         message: "You are not authorized to access this case",
@@ -293,19 +374,42 @@ console.log("REQUESTED OFFICER:", officerId);
     // Police → assigned cases only
     if (
       role === "POLICE" &&
-      (!caseData.assignedOfficer ||
-        caseData.assignedOfficer._id.toString() !== userId.toString())
+      (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer._id.toString() !==
+          userId.toString()
+      )
     ) {
       return res.status(403).json({
         message: "You are not authorized to access this case",
       });
     }
 
+    // ==================================================
+    // FETCH EVIDENCE FOR THIS CASE
+    // ==================================================
+
+    const evidence = await Evidence.find({
+      caseId: caseData.caseId,
+    }).populate(
+      "uploadedBy",
+      "name email role"
+    );
+
+    // Convert mongoose document to normal object
+    // and attach evidence to response
+    const caseResponse = caseData.toObject();
+
+    caseResponse.evidence = evidence;
+
     return res.status(200).json({
-      case: caseData,
+      case: caseResponse,
     });
   } catch (error) {
-    console.error("Failed to fetch case:", error);
+    console.error(
+      "Failed to fetch case:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch case",
@@ -313,7 +417,6 @@ console.log("REQUESTED OFFICER:", officerId);
     });
   }
 };
-
 
 // ======================================================
 // GET ASSIGNED CASES
@@ -325,7 +428,10 @@ const getAssignedCases = async (req, res) => {
       assignedOfficer: req.user.userId,
     })
       .populate("citizenId", "name email")
-      .populate("assignedOfficer", "name email role")
+      .populate(
+        "assignedOfficer",
+        "name email role"
+      )
       .populate("firId")
       .sort({ createdAt: -1 });
 
@@ -334,7 +440,10 @@ const getAssignedCases = async (req, res) => {
       cases,
     });
   } catch (error) {
-    console.error("Failed to fetch assigned cases:", error);
+    console.error(
+      "Failed to fetch assigned cases:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch assigned cases",
@@ -342,7 +451,6 @@ const getAssignedCases = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // GET CASE AUDIT LOGS
@@ -365,26 +473,35 @@ const getCaseAuditLogs = async (req, res) => {
     // Citizen → own case only
     if (
       role === "CITIZEN" &&
-      caseData.citizenId.toString() !== userId.toString()
+      caseData.citizenId.toString() !==
+        userId.toString()
     ) {
       return res.status(403).json({
-        message: "You are not authorized to access audit logs of this case",
+        message:
+          "You are not authorized to access audit logs of this case",
       });
     }
 
     // Police → assigned cases only
     if (
       role === "POLICE" &&
-      (!caseData.assignedOfficer ||
-        caseData.assignedOfficer.toString() !== userId.toString())
+      (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer.toString() !==
+          userId.toString()
+      )
     ) {
       return res.status(403).json({
-        message: "You can only access audit logs of cases assigned to you",
+        message:
+          "You can only access audit logs of cases assigned to you",
       });
     }
 
     const auditLogs = await AuditLog.find({ caseId })
-      .populate("performedBy", "name email role")
+      .populate(
+        "userId",
+        "name email role"
+      )
       .sort({ createdAt: 1 });
 
     return res.status(200).json({
@@ -393,7 +510,10 @@ const getCaseAuditLogs = async (req, res) => {
       auditLogs,
     });
   } catch (error) {
-    console.error("Failed to fetch audit logs:", error);
+    console.error(
+      "Failed to fetch audit logs:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch audit logs",
@@ -402,26 +522,29 @@ const getCaseAuditLogs = async (req, res) => {
   }
 };
 
-
 // ======================================================
 // GET CASE STATS
 // ======================================================
 
 const getCaseStats = async (req, res) => {
   try {
-    const totalCases = await Case.countDocuments();
+    const totalCases =
+      await Case.countDocuments();
 
-    const assignedCases = await Case.countDocuments({
-      assignedOfficer: { $ne: null },
-    });
+    const assignedCases =
+      await Case.countDocuments({
+        assignedOfficer: { $ne: null },
+      });
 
-    const pendingAssignment = await Case.countDocuments({
-      assignedOfficer: null,
-    });
+    const pendingAssignment =
+      await Case.countDocuments({
+        assignedOfficer: null,
+      });
 
-    const resolvedCases = await Case.countDocuments({
-      status: "RESOLVED",
-    });
+    const resolvedCases =
+      await Case.countDocuments({
+        status: "RESOLVED",
+      });
 
     return res.status(200).json({
       totalCases,
@@ -430,7 +553,10 @@ const getCaseStats = async (req, res) => {
       resolvedCases,
     });
   } catch (error) {
-    console.error("Failed to fetch case stats:", error);
+    console.error(
+      "Failed to fetch case stats:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch case statistics",
@@ -438,7 +564,6 @@ const getCaseStats = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // GET CASE TIMELINE
@@ -461,27 +586,32 @@ const getTimeline = async (req, res) => {
     // Citizen → own case only
     if (
       role === "CITIZEN" &&
-      caseData.citizenId.toString() !== userId.toString()
+      caseData.citizenId.toString() !==
+        userId.toString()
     ) {
       return res.status(403).json({
-        message: "You are not authorized to access this case timeline",
+        message:
+          "You are not authorized to access this case timeline",
       });
     }
-    console.log("ASSIGNED OFFICER:", caseData.assignedOfficer);
-console.log("CURRENT USER:", userId);
 
     // Police → assigned cases only
-    // if (
-    //   role === "POLICE" &&
-    //   (!caseData.assignedOfficer ||
-    //     caseData.assignedOfficer.toString() !== userId.toString())
-    // // ) {
-    //   return res.status(403).json({
-    //     message: "You can only access timeline of cases assigned to you",
-    //   });
-    // }
+    if (
+      role === "POLICE" &&
+      (
+        !caseData.assignedOfficer ||
+        caseData.assignedOfficer.toString() !==
+          userId.toString()
+      )
+    ) {
+      return res.status(403).json({
+        message:
+          "You can only access timeline of cases assigned to you",
+      });
+    }
 
-    const timeline = await getCaseTimeline(caseId);
+    const timeline =
+      await getCaseTimeline(caseId);
 
     return res.status(200).json({
       caseId,
@@ -489,7 +619,10 @@ console.log("CURRENT USER:", userId);
       timeline,
     });
   } catch (error) {
-    console.error("Failed to fetch case timeline:", error);
+    console.error(
+      "Failed to fetch case timeline:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to fetch case timeline",
@@ -497,7 +630,6 @@ console.log("CURRENT USER:", userId);
     });
   }
 };
-
 
 // ======================================================
 // AI CASE ANALYSIS
@@ -513,7 +645,9 @@ const analyzeCaseWithAI = async (req, res) => {
       });
     }
 
-    const existingCase = await Case.findOne({ caseId }).populate("firId");
+    const existingCase = await Case.findOne({
+      caseId,
+    }).populate("firId");
 
     if (!existingCase) {
       return res.status(404).json({
@@ -525,12 +659,22 @@ const analyzeCaseWithAI = async (req, res) => {
 
     if (!fir) {
       return res.status(404).json({
-        message: "Case exists, but related FIR was not found",
+        message:
+          "Case exists, but related FIR was not found",
       });
     }
 
-    // Return saved analysis if already available
-    if (existingCase.aiAnalysis) {
+    // ==================================================
+    // CHECK IF REAL AI ANALYSIS ALREADY EXISTS
+    // ==================================================
+
+    const hasRealAIAnalysis =
+      existingCase.aiAnalysis &&
+      existingCase.aiAnalysis.aiAvailable === true &&
+      existingCase.aiAnalysis.classification &&
+      existingCase.aiAnalysis.summary;
+
+    if (hasRealAIAnalysis) {
       return res.status(200).json({
         aiAnalysis: existingCase.aiAnalysis,
         cached: true,
@@ -538,16 +682,37 @@ const analyzeCaseWithAI = async (req, res) => {
       });
     }
 
+    // ==================================================
+    // RUN GEMINI AI
+    // ==================================================
+
+    console.log(
+      `Running Gemini AI analysis for case: ${caseId}`
+    );
+
     const aiAnalysis = await analyzeFIR({
-      incidentDescription: fir.incidentDescription,
-      category: fir.category,
-      incidentLocation: fir.incidentLocation,
-      incidentDate: fir.incidentDate,
+      incidentDescription:
+        fir.incidentDescription,
+
+      category:
+        fir.category,
+
+      incidentLocation:
+        fir.incidentLocation,
+
+      incidentDate:
+        fir.incidentDate,
     });
+
+    // ==================================================
+    // SAVE REAL AI RESULT
+    // ==================================================
 
     if (aiAnalysis.aiAvailable !== false) {
       existingCase.aiAnalysis = aiAnalysis;
-      existingCase.priority = aiAnalysis.severity || "MEDIUM";
+
+      existingCase.priority =
+        aiAnalysis.severity || "MEDIUM";
 
       await existingCase.save();
 
@@ -569,7 +734,10 @@ const analyzeCaseWithAI = async (req, res) => {
       source: "gemini",
     });
   } catch (error) {
-    console.error("AI case analysis failed:", error);
+    console.error(
+      "AI case analysis failed:",
+      error
+    );
 
     return res.status(500).json({
       message: "Failed to analyze case with AI",
@@ -577,7 +745,6 @@ const analyzeCaseWithAI = async (req, res) => {
     });
   }
 };
-
 
 // ======================================================
 // EXPORTS

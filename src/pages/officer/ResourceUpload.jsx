@@ -1,58 +1,512 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
+
 import { useLanguage } from '../../contexts/LanguageContext';
+
 import Breadcrumb from '../../components/layout/Breadcrumb';
-import { FileText, BarChart, Shield, UploadCloud, Lock, CheckCircle2 } from 'lucide-react';
+
+import {
+  FileText,
+  BarChart,
+  Shield,
+  UploadCloud,
+  Lock,
+  CheckCircle2
+} from 'lucide-react';
+
 import { formatDate } from '../../utils/helpers';
+
+const API_URL = 'http://localhost:5001/api';
+
+// TEMPORARY DEMO CASE FOR TESTING
+const DEMO_CASE_ID = 'ANV-2026-291848';
 
 export default function ResourceUpload() {
   const { t } = useLanguage();
+
   const [activeTab, setActiveTab] = useState('Documents');
-  const [uploadedFiles, setUploadedFiles] = useState([
-    { id: 1, name: 'FIR_Copy_1198.pdf', size: '2.4 MB', date: new Date().toISOString(), type: 'Documents' },
-    { id: 2, name: 'Forensic_Report_A.pdf', size: '5.1 MB', date: new Date().toISOString(), type: 'Reports' },
-    { id: 3, name: 'CCTV_Footage_Extract.mp4', size: '15.8 MB', date: new Date().toISOString(), type: 'Evidence' },
-  ]);
+
+  const [uploadedFiles, setUploadedFiles] = useState([]);
+
   const [isUploading, setIsUploading] = useState(false);
 
+  const [isSigning, setIsSigning] = useState(false);
+
+  const [isVerifyingSignature, setIsVerifyingSignature] = useState(false);
+
+  const fileInputRef = useRef(null);
+
+  const signatureInputRef = useRef(null);
+
   const breadcrumbs = [
-    { label: t('Home') || 'Home', path: '/' },
-    { label: t('Resource Upload') || 'Resource Upload', path: '/officer/upload' }
+    {
+      label: t('Home') || 'Home',
+      path: '/'
+    },
+    {
+      label: t('Resource Upload') || 'Resource Upload',
+      path: '/officer/upload'
+    }
   ];
 
-  const handleUpload = () => {
-    setIsUploading(true);
-    setTimeout(() => {
-      const newFile = {
-        id: Date.now(),
-        name: `New_Upload_${activeTab}_${Date.now()}.pdf`,
-        size: '1.2 MB',
-        date: new Date().toISOString(),
-        type: activeTab
-      };
-      setUploadedFiles([newFile, ...uploadedFiles]);
-      setIsUploading(false);
-    }, 1000);
+  // =========================================================
+  // EVIDENCE UPLOAD
+  // =========================================================
+
+  const handleUploadClick = () => {
+    if (isUploading || isSigning || isVerifyingSignature) return;
+
+    fileInputRef.current?.click();
   };
 
-  const currentFiles = uploadedFiles.filter(f => f.type === activeTab);
+  const handleFileSelected = async (event) => {
+    const file = event.target.files?.[0];
+
+    // Nothing selected
+    if (!file) return;
+
+    // Only actual Evidence tab uses backend evidence upload
+    if (activeTab !== 'Evidence') {
+      alert('Please select the Evidence tab to upload evidence.');
+      event.target.value = '';
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const token = localStorage.getItem('anveshak_token');
+
+      if (!token) {
+        throw new Error(
+          'Authentication token not found. Please login again.'
+        );
+      }
+
+      const formData = new FormData();
+
+      formData.append('file', file);
+
+      formData.append('caseId', DEMO_CASE_ID);
+
+      const response = await fetch(`${API_URL}/evidence/upload`, {
+        method: 'POST',
+
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+
+        body: formData
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            'Evidence upload failed'
+        );
+      }
+
+      console.log('EVIDENCE UPLOAD SUCCESS:', data);
+
+      const evidence = data.evidence || data.data || data;
+
+      const newFile = {
+        id:
+          evidence._id ||
+          evidence.evidenceId ||
+          Date.now(),
+
+        name:
+          evidence.fileName ||
+          file.name,
+
+        size:
+          `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+
+        date:
+          evidence.createdAt ||
+          new Date().toISOString(),
+
+        type: 'Evidence',
+
+        evidenceId:
+          evidence.evidenceId,
+
+        caseId:
+          evidence.caseId,
+
+        fileHash:
+          evidence.fileHash,
+
+        verificationStatus:
+          evidence.verificationStatus,
+
+        blockchainStatus:
+          evidence.blockchainStatus,
+
+        signatureStatus:
+          null,
+
+        signatureVerified:
+          false
+      };
+
+      setUploadedFiles((previous) => [
+        newFile,
+        ...previous
+      ]);
+
+      alert(
+        `Evidence uploaded successfully${
+          evidence.evidenceId
+            ? `\nEvidence ID: ${evidence.evidenceId}`
+            : ''
+        }`
+      );
+
+    } catch (error) {
+      console.error(
+        'EVIDENCE UPLOAD ERROR:',
+        error
+      );
+
+      alert(
+        error.message ||
+          'Evidence upload failed'
+      );
+
+    } finally {
+      setIsUploading(false);
+
+      // Allows selecting the same file again
+      event.target.value = '';
+    }
+  };
+
+  // =========================================================
+  // DIGITAL SIGNATURE
+  // =========================================================
+
+  const handleSignClick = (file) => {
+    if (!file?.evidenceId) {
+      alert('Evidence ID not found.');
+      return;
+    }
+
+    if (isSigning || isUploading || isVerifyingSignature) {
+      return;
+    }
+
+    // Store evidence ID temporarily on input
+    signatureInputRef.current.dataset.evidenceId =
+      file.evidenceId;
+
+    signatureInputRef.current?.click();
+  };
+
+  const handleSignatureSelected = async (event) => {
+    const signatureFile =
+      event.target.files?.[0];
+
+    const evidenceId =
+      signatureInputRef.current?.dataset?.evidenceId;
+
+    if (!signatureFile || !evidenceId) {
+      event.target.value = '';
+      return;
+    }
+
+    // Signature image must be PNG/JPEG
+    const allowedTypes = [
+      'image/png',
+      'image/jpeg'
+    ];
+
+    if (!allowedTypes.includes(signatureFile.type)) {
+      alert(
+        'Please select a PNG or JPEG signature image.'
+      );
+
+      event.target.value = '';
+
+      return;
+    }
+
+    setIsSigning(true);
+
+    try {
+      const token =
+        localStorage.getItem(
+          'anveshak_token'
+        );
+
+      if (!token) {
+        throw new Error(
+          'Authentication token not found. Please login again.'
+        );
+      }
+
+      const formData = new FormData();
+
+      /*
+       * IMPORTANT:
+       * Backend signature route expects req.file
+       * so the field name is "file".
+       */
+      formData.append(
+  'signature',
+  signatureFile
+);
+
+      const response = await fetch(
+        `${API_URL}/evidence/${evidenceId}/sign`,
+        {
+          method: 'POST',
+
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+
+          body: formData
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            'Digital signature failed'
+        );
+      }
+
+      console.log(
+        'DIGITAL SIGNATURE SUCCESS:',
+        data
+      );
+
+      setUploadedFiles(
+        (previous) =>
+          previous.map((file) =>
+            file.evidenceId === evidenceId
+              ? {
+                  ...file,
+
+                  signatureStatus:
+                    data.signature
+                      ?.verificationStatus ||
+                    data.verificationStatus ||
+                    'VALID',
+
+                  signatureVerified:
+                    true
+                }
+              : file
+          )
+      );
+
+      alert(
+        'Digital signature applied successfully.'
+      );
+
+    } catch (error) {
+      console.error(
+        'DIGITAL SIGNATURE ERROR:',
+        error
+      );
+
+      alert(
+        error.message ||
+          'Digital signature failed'
+      );
+
+    } finally {
+      setIsSigning(false);
+
+      event.target.value = '';
+    }
+  };
+
+  // =========================================================
+  // VERIFY DIGITAL SIGNATURE
+  // =========================================================
+
+  const handleVerifySignature = async (
+    evidenceId
+  ) => {
+    if (!evidenceId) {
+      alert('Evidence ID not found.');
+      return;
+    }
+
+    if (
+      isVerifyingSignature ||
+      isSigning ||
+      isUploading
+    ) {
+      return;
+    }
+
+    setIsVerifyingSignature(true);
+
+    try {
+      const token =
+        localStorage.getItem(
+          'anveshak_token'
+        );
+
+      if (!token) {
+        throw new Error(
+          'Authentication token not found. Please login again.'
+        );
+      }
+
+      const response = await fetch(
+        `${API_URL}/evidence/${evidenceId}/signature/verify`,
+        {
+          method: 'GET',
+
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data =
+        await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            data.error ||
+            'Signature verification failed'
+        );
+      }
+
+      console.log(
+        'SIGNATURE VERIFICATION SUCCESS:',
+        data
+      );
+
+      const verified =
+        data.verified === true ||
+        data.verificationStatus ===
+          'VALID';
+
+      setUploadedFiles(
+        (previous) =>
+          previous.map((file) =>
+            file.evidenceId === evidenceId
+              ? {
+                  ...file,
+
+                  signatureStatus:
+                    data.verificationStatus ||
+                    (verified
+                      ? 'VALID'
+                      : 'INVALID'),
+
+                  signatureVerified:
+                    verified
+                }
+              : file
+          )
+      );
+
+      if (verified) {
+        alert(
+          'Digital signature verified successfully. Status: VALID'
+        );
+      } else {
+        alert(
+          'Digital signature verification failed. Status: INVALID'
+        );
+      }
+
+    } catch (error) {
+      console.error(
+        'SIGNATURE VERIFICATION ERROR:',
+        error
+      );
+
+      alert(
+        error.message ||
+          'Signature verification failed'
+      );
+
+    } finally {
+      setIsVerifyingSignature(false);
+    }
+  };
+
+  // =========================================================
+  // FILTER FILES
+  // =========================================================
+
+  const currentFiles =
+    uploadedFiles.filter(
+      (file) =>
+        file.type === activeTab
+    );
+
+  // =========================================================
+  // FILE ICON
+  // =========================================================
 
   const getIcon = (type) => {
-    if (type === 'Documents') return <FileText className="w-6 h-6 text-blue-500" />;
-    if (type === 'Reports') return <BarChart className="w-6 h-6 text-purple-500" />;
-    if (type === 'Evidence') return <Shield className="w-6 h-6 text-alert" />;
-    return <FileText className="w-6 h-6" />;
+    if (type === 'Documents') {
+      return (
+        <FileText className="w-6 h-6 text-blue-500" />
+      );
+    }
+
+    if (type === 'Reports') {
+      return (
+        <BarChart className="w-6 h-6 text-purple-500" />
+      );
+    }
+
+    if (type === 'Evidence') {
+      return (
+        <Shield className="w-6 h-6 text-alert" />
+      );
+    }
+
+    return (
+      <FileText className="w-6 h-6" />
+    );
   };
+
+  // =========================================================
+  // UI
+  // =========================================================
 
   return (
     <div className="space-y-6">
+
       <Breadcrumb items={breadcrumbs} />
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+
+        {/* TABS */}
+
         <div className="flex border-b border-gray-100">
-          {['Documents', 'Reports', 'Evidence'].map(tab => (
+
+          {[
+            'Documents',
+            'Reports',
+            'Evidence'
+          ].map((tab) => (
+
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() =>
+                setActiveTab(tab)
+              }
               className={`flex-1 py-4 text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'bg-gray-50 text-navy border-b-2 border-navy'
@@ -61,61 +515,258 @@ export default function ResourceUpload() {
             >
               {t(tab) || tab}
             </button>
+
           ))}
+
         </div>
 
         <div className="p-6">
-          <div 
-            onClick={handleUpload}
+
+          {/* Hidden real evidence upload input */}
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={handleFileSelected}
+          />
+
+          {/* Hidden signature image input */}
+
+          <input
+            ref={signatureInputRef}
+            type="file"
+            accept="image/png,image/jpeg"
+            className="hidden"
+            onChange={handleSignatureSelected}
+          />
+
+          {/* UPLOAD DROPZONE */}
+
+          <div
+            onClick={handleUploadClick}
             className="dropzone w-full p-12 border-2 border-dashed border-gray-300 rounded-xl bg-gray-50 hover:bg-gray-100 hover:border-navy transition-all cursor-pointer flex flex-col items-center justify-center text-center"
           >
+
             {isUploading ? (
+
               <div className="animate-pulse flex flex-col items-center">
+
                 <UploadCloud className="w-12 h-12 text-navy mb-4 animate-bounce" />
-                <p className="text-charcoal font-medium">{t('Encrypting and Uploading...') || 'Encrypting and Uploading...'}</p>
+
+                <p className="text-charcoal font-medium">
+                  {t(
+                    'Encrypting and Uploading...'
+                  ) ||
+                    'Encrypting and Uploading...'}
+                </p>
+
               </div>
+
             ) : (
+
               <>
+
                 <UploadCloud className="w-12 h-12 text-gray-400 mb-4" />
-                <p className="text-charcoal font-medium text-lg mb-1">{t('Drag and drop files here') || 'Drag and drop files here'}</p>
-                <p className="text-gray-500 text-sm mb-4">{t('or click to browse') || 'or click to browse'}</p>
+
+                <p className="text-charcoal font-medium text-lg mb-1">
+                  {t(
+                    'Drag and drop files here'
+                  ) ||
+                    'Drag and drop files here'}
+                </p>
+
+                <p className="text-gray-500 text-sm mb-4">
+                  {t(
+                    'or click to browse'
+                  ) ||
+                    'or click to browse'}
+                </p>
+
                 <div className="flex items-center gap-2 text-xs text-forest bg-forest/10 px-3 py-1.5 rounded-full font-medium">
+
                   <Lock className="w-3 h-3" />
-                  {t('AES-256 End-to-End Encryption Enabled') || 'AES-256 End-to-End Encryption Enabled'}
+
+                  {t(
+                    'AES-256 End-to-End Encryption Enabled'
+                  ) ||
+                    'AES-256 End-to-End Encryption Enabled'}
+
                 </div>
+
               </>
+
             )}
+
           </div>
+
         </div>
+
       </div>
 
+      {/* RECENTLY UPLOADED */}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h3 className="text-lg font-semibold text-charcoal mb-4">{t('Recently Uploaded') || 'Recently Uploaded'}</h3>
+
+        <h3 className="text-lg font-semibold text-charcoal mb-4">
+          {t('Recently Uploaded') ||
+            'Recently Uploaded'}
+        </h3>
+
         <div className="space-y-3">
-          {currentFiles.map(file => (
-            <div key={file.id} className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+
+          {currentFiles.map((file) => (
+
+            <div
+              key={file.id}
+              className="flex items-center justify-between p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+            >
+
+              {/* FILE INFORMATION */}
+
               <div className="flex items-center gap-4">
+
                 <div className="p-2 bg-gray-100 rounded-lg">
                   {getIcon(file.type)}
                 </div>
+
                 <div>
-                  <p className="font-medium text-charcoal">{file.name}</p>
-                  <p className="text-xs text-gray-500">{file.size} • {formatDate(file.date)}</p>
+
+                  <p className="font-medium text-charcoal">
+                    {file.name}
+                  </p>
+
+                  <p className="text-xs text-gray-500">
+                    {file.size} •{' '}
+                    {formatDate(file.date)}
+                  </p>
+
+                  {file.evidenceId && (
+
+                    <p className="text-xs text-gray-400 mt-1">
+                      Evidence ID:{' '}
+                      {file.evidenceId}
+                    </p>
+
+                  )}
+
                 </div>
+
               </div>
+
+              {/* ACTIONS */}
+
               <div className="flex items-center gap-3">
+
+                {/* ENCRYPTED */}
+
                 <span className="flex items-center gap-1 text-xs font-medium text-forest bg-forest/10 px-2 py-1 rounded">
-                  <Lock className="w-3 h-3" /> Encrypted
+
+                  <Lock className="w-3 h-3" />
+
+                  Encrypted
+
                 </span>
-                <CheckCircle2 className="w-5 h-5 text-forest" />
+
+                {/* SIGN EVIDENCE */}
+
+                {file.evidenceId &&
+                  !file.signatureStatus && (
+
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleSignClick(file);
+                      }}
+                      disabled={
+                        isSigning ||
+                        isUploading ||
+                        isVerifyingSignature
+                      }
+                      className="text-xs font-medium px-3 py-1 rounded bg-navy text-white hover:opacity-90 disabled:opacity-50"
+                    >
+                      {isSigning
+                        ? 'Signing...'
+                        : 'Sign Evidence'}
+                    </button>
+
+                  )}
+
+                {/* SIGNED STATUS */}
+
+                {file.signatureStatus && (
+
+                  <span className="flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded">
+
+                    <CheckCircle2 className="w-3 h-3" />
+
+                    Signed
+
+                  </span>
+
+                )}
+
+                {/* VERIFY SIGNATURE */}
+
+                {file.signatureStatus && (
+
+                  <button
+                    type="button"
+                    onClick={(event) => {
+                      event.stopPropagation();
+
+                      handleVerifySignature(
+                        file.evidenceId
+                      );
+                    }}
+                    disabled={
+                      isVerifyingSignature ||
+                      isSigning ||
+                      isUploading
+                    }
+                    className="text-xs font-medium px-3 py-1 rounded border border-navy text-navy hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    {isVerifyingSignature
+                      ? 'Verifying...'
+                      : 'Verify Signature'}
+                  </button>
+
+                )}
+
+                {/* FINAL VERIFIED ICON */}
+
+                {file.signatureVerified && (
+
+                  <CheckCircle2 className="w-5 h-5 text-forest" />
+
+                )}
+
               </div>
+
             </div>
+
           ))}
+
+          {/* NO FILES */}
+
           {currentFiles.length === 0 && (
-            <p className="text-gray-500 text-center py-4">{t('No files uploaded in this category yet.') || 'No files uploaded in this category yet.'}</p>
+
+            <p className="text-gray-500 text-center py-4">
+
+              {t(
+                'No files uploaded in this category yet.'
+              ) ||
+                'No files uploaded in this category yet.'}
+
+            </p>
+
           )}
+
         </div>
+
       </div>
+
     </div>
   );
 }

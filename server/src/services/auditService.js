@@ -1,27 +1,27 @@
-const AuditLog = require("../models/AuditLog");
+  const AuditLog = require("../models/AuditLog");
 
-const createAuditLog = async ({
-  userId,
-  caseId,
-  action,
-  oldValue,
-  newValue,
-  description,
-  verificationStatus = "VERIFIED",
-}) => {
-  const auditLog = await AuditLog.create({
+  const createAuditLog = async ({
     userId,
     caseId,
     action,
     oldValue,
     newValue,
     description,
-    verificationStatus,
-  });
+    verificationStatus = "VERIFIED",
+  }) => {
+    const auditLog = await AuditLog.create({
+      userId,
+      caseId,
+      action,
+      oldValue,
+      newValue,
+      description,
+      verificationStatus,
+    });
 
-  return auditLog;
-};
+    return auditLog;
+  };
 
-module.exports = {
-  createAuditLog,
-};
+  module.exports = {
+    createAuditLog,
+  };

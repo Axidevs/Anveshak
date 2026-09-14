@@ -16,22 +16,31 @@ const canAccessCase = (caseRecord, user) => {
     return false;
   }
 
+  // ADMIN can access all internal collaboration
   if (user.role === "ADMIN") {
     return true;
   }
 
+  // Assigned police officer can access the case
   if (user.role === "POLICE") {
+    if (!caseRecord.assignedOfficer) {
+      return false;
+    }
+
     return (
-      caseRecord.assignedOfficer &&
-      caseRecord.assignedOfficer.toString() === user.userId
+      caseRecord.assignedOfficer.toString() ===
+      user.userId.toString()
     );
   }
 
-  // Other authorized internal departments can access
-  // case-linked collaboration.
+  // Authorized internal departments
   return true;
 };
 
+// ======================================================
+// SEND MESSAGE
+// POST /api/chat/case/:caseId
+// ======================================================
 exports.sendMessage = async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -53,7 +62,8 @@ exports.sendMessage = async (req, res) => {
 
     if (!canAccessCase(caseRecord, req.user)) {
       return res.status(403).json({
-        message: "You are not authorized to access case collaboration",
+        message:
+          "You are not authorized to access case collaboration",
       });
     }
 
@@ -63,40 +73,60 @@ exports.sendMessage = async (req, res) => {
       text: text.trim(),
     });
 
-    await newMessage.populate("senderId", "name role department");
+    await newMessage.populate(
+      "senderId",
+      "name role department"
+    );
 
+    // Real-time message
     const io = getIo();
 
-    io.to(`case_${caseId}`).emit("receiveMessage", newMessage);
+    io.to(`case_${caseId}`).emit(
+      "receiveMessage",
+      newMessage
+    );
 
-    // Notify authorized internal participants only.
+    // Notify other authorized internal participants
     const participants = await User.find({
       _id: { $ne: req.user.userId },
       role: { $in: INTERNAL_ROLES },
-    }).select("_id");
+    }).select("_id role");
 
     for (const participant of participants) {
-      await createNotification({
-        userId: participant._id,
-        caseId,
-        type: "NEW_MESSAGE",
-        message: `New internal collaboration message for case ${caseId}`,
-      });
+      try {
+        await createNotification({
+          userId: participant._id,
+          caseId,
+          type: "NEW_MESSAGE",
+          message:
+            `New internal collaboration message for case ${caseId}`,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Notification creation failed:",
+          notificationError.message
+        );
+      }
     }
 
-    res.status(201).json({
-      message: "Message sent",
+    return res.status(201).json({
+      message: newMessage,
       data: newMessage,
     });
   } catch (error) {
     console.error("sendMessage error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Internal server error",
+      error: error.message,
     });
   }
 };
 
+// ======================================================
+// GET MESSAGES
+// GET /api/chat/case/:caseId
+// ======================================================
 exports.getMessages = async (req, res) => {
   try {
     const { caseId } = req.params;
@@ -111,20 +141,27 @@ exports.getMessages = async (req, res) => {
 
     if (!canAccessCase(caseRecord, req.user)) {
       return res.status(403).json({
-        message: "You are not authorized to access case collaboration",
+        message:
+          "You are not authorized to access case collaboration",
       });
     }
 
-    const messages = await Message.find({ caseId })
+    const messages = await Message.find({
+      caseId,
+    })
       .sort({ createdAt: 1 })
-      .populate("senderId", "name role department");
+      .populate(
+        "senderId",
+        "name role department"
+      );
 
-    res.status(200).json(messages);
+    return res.status(200).json(messages);
   } catch (error) {
     console.error("getMessages error:", error);
 
-    res.status(500).json({
+    return res.status(500).json({
       message: "Internal server error",
+      error: error.message,
     });
   }
 };

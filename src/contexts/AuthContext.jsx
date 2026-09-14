@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useCallback } from 'react';
 
 const AuthContext = createContext();
@@ -17,29 +16,33 @@ export function AuthProvider({ children }) {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = useCallback(async (role, credentials = {}) => {
+  const login = useCallback(async (role) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/demo-login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email: credentials.email,
-          password: credentials.password,
+          role,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+        throw new Error(
+          data.message || 'Identity verification failed'
+        );
       }
 
       localStorage.setItem('anveshak_token', data.token);
-      localStorage.setItem('anveshak_user', JSON.stringify(data.user));
+      localStorage.setItem(
+        'anveshak_user',
+        JSON.stringify(data.user)
+      );
 
       setToken(data.token);
       setUser(data.user);
