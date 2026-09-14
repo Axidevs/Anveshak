@@ -124,19 +124,7 @@ const getTimeline = async (req, res) => {
   }
 };
 
-const getAllCases = async (req, res) => {
-  try {
-    let filter = {};
-    if (req.user.role === 'CITIZEN') filter.citizenId = req.user.userId;
-    const cases = await Case.find(filter).populate('firId', 'incidentType incidentLocation description').populate('citizenId', 'name email').populate('assignedOfficer', 'name').sort({ createdAt: -1 });
-    res.status(200).json({ count: cases.length, cases });
-  } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch cases', error: error.message });
-  }
-};
-
 module.exports = {
-  getAllCases,
   createCaseFromFIR,
   updateStatus,
   getTimeline,
