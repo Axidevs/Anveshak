@@ -86,7 +86,7 @@ export default function Navbar() {
 
           {/* Desktop Nav Links */}
           <div className="hidden lg:flex items-center gap-1">
-            {!isAuthenticated && navLinks.map((link) => (
+            {navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -194,7 +194,7 @@ export default function Navbar() {
             </a>
           </div>
 
-          {!isAuthenticated && navLinks.map((link) => (
+          {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}

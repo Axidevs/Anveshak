@@ -385,10 +385,21 @@ export default function Landing() {
 
               {/* Quick action pills */}
               <div className="flex flex-wrap gap-1.5">
-                {['File FIR', 'Track Case', 'Report Cyber Crime', 'Find Station'].map((label, index) => (
-                  <button key={label} className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-white/60 border border-emerald-200/60 text-emerald-900 hover:text-amber-950 hover:bg-amber-50/80 hover:border-amber-300 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-popup`} style={{ animationDelay: `${index * 0.15 + 0.3}s` }}>
-                    {label}
-                  </button>
+                {[
+                  { label: 'File FIR', path: '/citizen' },
+                  { label: 'Track Case', path: '/citizen' },
+                  { label: 'Report Cyber Crime', path: '/citizen' },
+                  { label: 'Find Station', path: '/home#crime-map' }
+                ].map((link, index) => (
+                  link.path.startsWith('/home#') ? (
+                    <a key={link.label} href={link.path} className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-white/60 border border-emerald-200/60 text-emerald-900 hover:text-amber-950 hover:bg-amber-50/80 hover:border-amber-300 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-popup`} style={{ animationDelay: `${index * 0.15 + 0.3}s` }}>
+                      {link.label}
+                    </a>
+                  ) : (
+                    <Link key={link.label} to={link.path} className={`px-3 py-1.5 rounded-full text-xs font-semibold backdrop-blur-md bg-white/60 border border-emerald-200/60 text-emerald-900 hover:text-amber-950 hover:bg-amber-50/80 hover:border-amber-300 hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-popup`} style={{ animationDelay: `${index * 0.15 + 0.3}s` }}>
+                      {link.label}
+                    </Link>
+                  )
                 ))}
               </div>
             </div>
