@@ -43,28 +43,44 @@ export default function Login() {
       setStep(3);
     }
   };
+const handleIdUpload = async (e) => {
+  const file = e.target.files?.[0];
 
-  const handleIdUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setIsUploadingId(true);
-      setUploadMessage('Verifying Department ID...');
-      
-      setTimeout(() => {
-        setUploadMessage('Authentication successful!');
-      }, 1500);
-      
-      setTimeout(async () => {
-        await login(selectedRole);
-        if (selectedRole === 'court') {
-          navigate('/court');
-        } else {
-          navigate('/officer');
-        }
-      }, 2500);
+  if (!file) return;
+
+  setIsUploadingId(true);
+  setUploadMessage('Verifying Department ID...');
+
+  try {
+    // Demo verification
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    setUploadMessage('Authentication successful!');
+
+    // Give UI a moment to show success
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // Actual backend login
+    await login(selectedRole);
+
+    // Navigate according to selected role
+    if (selectedRole === 'court') {
+      navigate('/court');
+    } else if (selectedRole === 'agency') {
+      navigate('/officer');
+    } else if (selectedRole === 'police') {
+      navigate('/officer');
     }
-  };
+  } catch (error) {
+    console.error('Department ID verification/login failed:', error);
 
+    setUploadMessage(
+      error?.message || 'Authentication failed. Please try again.'
+    );
+
+    setIsUploadingId(false);
+  }
+};
   const roles = [
     {
       id: 'citizen',

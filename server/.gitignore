@@ -1,0 +1,11 @@
+
+node_modules/
+.env
+.env.*
+!.env.example
+
+server/uploads/*
+!server/uploads/.gitkeep
+# Ignore uploaded evidence files
+uploads/*
+!uploads/.gitkeep

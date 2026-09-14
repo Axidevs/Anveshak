@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Environment variables
+.env
+.env.*
+!.env.example
+server/keys/
+server/sign.jpeg
+server.zip
+src/components/shared/FormalCaseChat.backup.jsx
