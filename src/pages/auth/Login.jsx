@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -87,7 +87,7 @@ export default function Login() {
   const roles = [
     { id: 'citizen', title: 'Citizen', description: 'File FIRs, track cases, access court orders', icon: Shield, colorClass: 'text-saffron', bgHoverClass: 'hover:bg-saffron/10', borderHoverClass: 'hover:border-saffron' },
     { id: 'police', title: 'Police Officer', description: 'Manage cases, upload evidence, inter-agency sharing', icon: ShieldCheck, colorClass: 'text-navy', bgHoverClass: 'hover:bg-navy/10', borderHoverClass: 'hover:border-navy' },
-    { id: 'agency', title: 'Investigating Agency', description: 'CBI, ED, Customs - cross-agency case management', icon: Search, colorClass: 'text-charcoal', bgHoverClass: 'hover:bg-charcoal/10', borderHoverClass: 'hover:border-charcoal' },
+    { id: 'agency', title: 'Investigating Agency', description: 'CBI, ED, Customs — cross-agency case management', icon: Search, colorClass: 'text-charcoal', bgHoverClass: 'hover:bg-charcoal/10', borderHoverClass: 'hover:border-charcoal' },
     { id: 'court', title: 'Court / Judiciary', description: 'Manage proceedings, issue orders, view evidence', icon: Scale, colorClass: 'text-forest', bgHoverClass: 'hover:bg-forest/10', borderHoverClass: 'hover:border-forest' }
   ];
 
@@ -105,7 +105,7 @@ export default function Login() {
               <Scale size={40} />
             </div>
             <h1 className="text-3xl font-serif font-bold text-navy mb-2">Welcome to Anveshak</h1>
-            <p className="text-charcoal/80 mb-10 font-medium">Digital Justice Platform - Government of India</p>
+            <p className="text-charcoal/80 mb-10 font-medium">Digital Justice Platform — Government of India</p>
 
             {isVerifying ? (
               <div className="w-full py-8 flex flex-col items-center justify-center space-y-4 fade-in-up">
@@ -201,11 +201,11 @@ export default function Login() {
               {roles.map((r) => {
                 const Icon = r.icon;
                 return (
-                  <button key={r.id} onClick={() => handleRoleSelect(r.id)} className={glass-card p-6 rounded-xl text-left transition-all duration-300 border-2 border-transparent   transform hover:-translate-y-1 group}>
-                    <div className={${r.colorClass} mb-4 bg-white/50 p-4 rounded-full inline-block group-hover:scale-110 transition-transform duration-300}>
+                  <button key={r.id} onClick={() => handleRoleSelect(r.id)} className={`glass-card p-6 rounded-xl text-left transition-all duration-300 border-2 border-transparent ${r.borderHoverClass} ${r.bgHoverClass} transform hover:-translate-y-1 group`}>
+                    <div className={`${r.colorClass} mb-4 bg-white/50 p-4 rounded-full inline-block group-hover:scale-110 transition-transform duration-300`}>
                       <Icon size={32} />
                     </div>
-                    <h3 className={	ext-2xl font-bold mb-2 }>{r.title}</h3>
+                    <h3 className={`text-2xl font-bold mb-2 ${r.colorClass}`}>{r.title}</h3>
                     <p className="text-charcoal/70 leading-relaxed">{r.description}</p>
                   </button>
                 );
