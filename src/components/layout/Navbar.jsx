@@ -26,7 +26,7 @@ export default function Navbar() {
     setUserMenuOpen(false);
   }, [location.pathname]);
 
-  const isLandingPage = location.pathname === '/';
+  const isLandingPage = location.pathname === '/' || location.pathname === '/home';
   const navBg = scrolled
     ? 'bg-white/90 backdrop-blur-xl shadow-sm border-b border-navy/5'
     : isLandingPage
@@ -35,13 +35,15 @@ export default function Navbar() {
   const textColor = 'text-charcoal';
   const logoColor = 'text-navy';
 
+  const getHashLink = (hash) => location.pathname === '/home' ? hash : `/home${hash}`;
+
   const navLinks = [
-    { href: '/home#about', label: 'About' },
-    { href: '/home#help', label: 'Help & Support' },
-    { href: '/home#how-it-works', label: t('nav.howItWorks') },
-    { href: '/home#citizens', label: t('nav.forCitizens') },
-    { href: '/home#officers', label: t('nav.forOfficers') },
-    { href: '/home#courts', label: t('nav.forCourts') },
+    { href: getHashLink('#about'), label: 'About' },
+    { href: getHashLink('#help'), label: 'Help & Support' },
+    { href: getHashLink('#how-it-works'), label: t('nav.howItWorks') },
+    { href: getHashLink('#citizens'), label: t('nav.forCitizens') },
+    { href: getHashLink('#officers'), label: t('nav.forOfficers') },
+    { href: getHashLink('#courts'), label: t('nav.forCourts') },
   ];
 
   const getDashboardPath = () => {
@@ -187,7 +189,7 @@ export default function Navbar() {
               <Globe className="w-4 h-4" />
               {language === 'en' ? 'हिन्दी (Hindi)' : 'English'}
             </button>
-            <a href="/home#about" className="px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
+            <a href={getHashLink('#about')} className="px-4 py-2 text-sm font-bold text-orange-600 hover:bg-orange-50 rounded-lg transition-colors">
               About Anveshak
             </a>
           </div>

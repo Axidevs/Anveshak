@@ -126,7 +126,7 @@ function AppRoutes() {
       </Route>
 
       {/* Officer routes */}
-      <Route element={<ProtectedRoute allowedRoles={['POLICE']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['POLICE', 'INVESTIGATING_AGENCY', 'AGENCY']} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/officer" element={<OfficerDashboard />} />
           <Route path="/officer/search" element={<SmartSearch />} />
