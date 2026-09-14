@@ -1,29 +1,22 @@
-require("dotenv").config();
+const API_URL = "http://localhost:5001/api";
 
-const express = require("express");
-const connectDB = require("./config/db");
+export const apiFetch = async (endpoint, options = {}) => {
+  const token = localStorage.getItem("anveshak_token");
 
-const app = express();
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+  });
 
-app.use(express.json());
+  const data = await response.json();
 
-app.get("/", (req, res) => {
-  res.send("Anveshak Backend is running");
-});
-
-const PORT = process.env.PORT || 5001;
-
-const startServer = async () => {
-  try {
-    await connectDB();
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error.message);
-    process.exit(1);
+  if (!response.ok) {
+    throw new Error(data.message || "Something went wrong");
   }
-};
 
-startServer();
+  return data;
+};
