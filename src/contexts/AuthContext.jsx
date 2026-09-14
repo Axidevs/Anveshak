@@ -16,18 +16,16 @@ export function AuthProvider({ children }) {
 
   const [isLoading, setIsLoading] = useState(false);
 
-  const login = useCallback(async (role) => {
+  const login = useCallback(async (role, credentials) => {
     setIsLoading(true);
 
     try {
-      const response = await fetch(`${API_URL}/auth/demo-login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          role,
-        }),
+        body: JSON.stringify(credentials),
       });
 
       const data = await response.json();
