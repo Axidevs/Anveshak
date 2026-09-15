@@ -123,7 +123,7 @@ export default function CourtCaseDetail() {
     if (orderFile) formData.append('file', orderFile);
 
     try {
-      const res = await fetch(``${API_URL}`/api/court/case/${caseId}/order`, {
+      const res = await fetch(`${API_URL}/api/court/case/${caseId}/order`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -184,7 +184,7 @@ export default function CourtCaseDetail() {
     if (judgmentFile) formData.append('file', judgmentFile);
 
     try {
-      const res = await fetch(``${API_URL}`/api/court/case/${currentCaseId}/judgment`, {
+      const res = await fetch(`${API_URL}/api/court/case/${currentCaseId}/judgment`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -235,7 +235,7 @@ export default function CourtCaseDetail() {
     formData.append('file', docFile);
 
     try {
-      const res = await fetch(``${API_URL}`/api/court/case/${currentCaseId}/document`, {
+      const res = await fetch(`${API_URL}/api/court/case/${currentCaseId}/document`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

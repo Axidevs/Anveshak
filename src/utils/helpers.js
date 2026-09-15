@@ -1,5 +1,5 @@
 /**
- * Utility helpers for the Nyaya Setu application.
+ * Utility helpers for the Anveshak application.
  */
 
 /**

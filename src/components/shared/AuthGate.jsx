@@ -41,14 +41,14 @@ export default function AuthGate({ onAuthenticated }) {
         {/* Logo and branding */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-white shadow-lg shadow-navy/10 flex items-center justify-center">
-              <Scale className="w-7 h-7 text-navy" />
+            <div className="w-20 h-20 rounded-2xl bg-white shadow-lg shadow-navy/10 flex items-center justify-center p-2">
+              <img src="/logo.jpg" alt="Anveshak Logo" className="w-full h-full object-contain" />
             </div>
           </div>
           <h1 className="text-3xl font-bold text-charcoal tracking-tight">
-            <span className="font-serif italic text-navy">न्याय</span> सेतु
+            <span className="font-serif italic text-navy">अन्वेषक</span>
           </h1>
-          <p className="text-xs text-charcoal-muted mt-1 tracking-widest uppercase">Nyaya Setu · Digital Justice Platform</p>
+          <p className="text-xs text-charcoal-muted mt-1 tracking-widest uppercase">Anveshak · Digital Justice Platform</p>
           {/* Indian tricolor line */}
           <div className="flex gap-0 w-20 h-0.5 rounded-full overflow-hidden mx-auto mt-4">
             <div className="flex-1 bg-saffron" />
@@ -66,7 +66,7 @@ export default function AuthGate({ onAuthenticated }) {
               </div>
               <h2 className="text-xl font-bold text-charcoal mb-2">Secure Identity Verification</h2>
               <p className="text-sm text-charcoal-muted mb-8 max-w-sm mx-auto leading-relaxed">
-                To access the Nyaya Setu platform, please verify your identity through one of our secure government authentication services.
+                To access the Anveshak platform, please verify your identity through one of our secure government authentication services.
               </p>
               <button
                 onClick={() => setStep(1)}
@@ -177,7 +177,7 @@ export default function AuthGate({ onAuthenticated }) {
                 <CheckCircle className="w-10 h-10 text-forest" />
               </div>
               <h2 className="text-lg font-bold text-charcoal mb-2">Identity Verified!</h2>
-              <p className="text-sm text-charcoal-muted mb-1">Welcome to Nyaya Setu</p>
+              <p className="text-sm text-charcoal-muted mb-1">Welcome to Anveshak</p>
               <p className="text-xs text-forest font-medium">Redirecting to platform...</p>
             </div>
           )}

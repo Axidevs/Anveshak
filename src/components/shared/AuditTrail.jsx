@@ -4,13 +4,14 @@ import { mockAuditLog } from '../../data/mockData';
 import { formatDateTime } from '../../utils/helpers';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-export default function AuditTrail({ caseFilter = null, limit = 10 }) {
+export default function AuditTrail(props) {
+  const { caseFilter = null, limit = 10 } = props;
   const { t } = useLanguage();
   const [expanded, setExpanded] = useState(false);
 
-  let logs = caseFilter
+  let logs = props.logs ? props.logs : (caseFilter
     ? mockAuditLog.filter(log => log.target.includes(caseFilter))
-    : mockAuditLog;
+    : mockAuditLog);
 
   const displayLogs = expanded ? logs : logs.slice(0, limit);
 

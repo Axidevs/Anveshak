@@ -40,7 +40,7 @@ export default function AccessControl() {
           <div>
             <h3 className="text-sm font-bold text-navy">Post-Based Access Control System (PBAC)</h3>
             <p className="text-sm text-gray-700 mt-1 leading-relaxed">
-              Nyaya Setu employs a strict Post-Based Access Control mechanism. All permissions are
+              Anveshak employs a strict Post-Based Access Control mechanism. All permissions are
               derived from your current designation and jurisdictional posting — not personal identity.
               Upon transfer or reassignment, access is automatically revoked from the previous
               jurisdiction and provisioned for the new posting within 24 hours.

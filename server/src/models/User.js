@@ -33,6 +33,24 @@ const userSchema = new mongoose.Schema(
       default: "CITIZEN",
     },
 
+    // Current post / rank used for PBAC
+    post: {
+      type: String,
+      enum: [
+        "CONSTABLE",
+        "HEAD_CONSTABLE",
+        "SUB_INSPECTOR",
+        "INSPECTOR",
+        "DSP_ACP",
+        "SP_DCP",
+        "CBI_OFFICER",
+        "ED_OFFICER",
+        "CUSTOMS_OFFICER",
+        "JUDGE",
+      ],
+      default: null,
+    },
+
     department: {
       type: String,
       default: null,
@@ -43,9 +61,11 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Current jurisdiction / posting
     jurisdiction: {
       type: String,
       default: null,
+      trim: true,
     },
 
     workload: {

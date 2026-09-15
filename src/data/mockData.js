@@ -1,5 +1,5 @@
 // ============================================================
-// MOCK DATA — Nyaya Setu
+// MOCK DATA — Anveshak
 // All data below is simulated for the SIH 2026 prototype.
 // In production, this would be fetched from secure APIs.
 // ============================================================
@@ -730,7 +730,7 @@ export const mockFormalMessages = [
     sender: { name: 'Dy. SP Amit Verma', designation: 'Deputy SP, CBI', tag: 'police' },
     timestamp: '2026-09-02T11:00:00',
     subject: 'Cross-Agency Authorisation Approved',
-    body: 'Cross-agency data sharing authorisation AUTH-2026-089 has been approved. Rajasthan Police can now access relevant case documents through the Nyaya Setu platform. Validity: 30 days from today.',
+    body: 'Cross-agency data sharing authorisation AUTH-2026-089 has been approved. Rajasthan Police can now access relevant case documents through the Anveshak platform. Validity: 30 days from today.',
     visibility: 'all',
     attachments: [
       { name: 'Authorisation_AUTH-2026-089.pdf', type: 'pdf', uploadedBy: 'Dy. SP Amit Verma', size: '340 KB' },

@@ -58,6 +58,16 @@
 
   --font-sans: 'Inter', 'Noto Sans Devanagari', system-ui, -apple-system, sans-serif;
   --font-serif: 'Playfair Display', Georgia, serif;
+  
+  --font-serif-merriweather: 'Merriweather', serif;
+  --font-sans-jakarta: 'Plus Jakarta Sans', sans-serif;
+  
+  --animate-shimmer: shimmer 3s infinite;
+  
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
 }
 
 /* Base styles */
@@ -381,3 +391,28 @@ body {
 .animate-float-rotate {
   animation: floatRotate 6s ease-in-out infinite;
 }
+
+@keyframes spinChakraClockwise {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.animate-spin-chakra {
+  animation: spinChakraClockwise 90s linear infinite;
+}
+
+@keyframes pulseSovereignGlow {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.03); opacity: 1; }
+}
+.animate-sovereign-pulse {
+  animation: pulseSovereignGlow 4s ease-in-out infinite;
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translateX(-150%); }
+  100% { transform: translateX(150%); }
+}
+.animate-shimmer {
+  animation: shimmerSweep 3s infinite linear;
+}
+

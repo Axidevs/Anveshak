@@ -23,7 +23,7 @@ export default function HeroCarousel() {
   const prevSlide = () => setCurrent(current === 0 ? slides.length - 1 : current - 1);
 
   return (
-    <div className="relative w-full h-[200px] sm:h-[260px] md:h-[320px] lg:h-[380px] overflow-hidden bg-gray-100 group shadow-lg z-10">
+    <div className="relative w-full h-[200px] sm:h-[300px] md:h-[400px] lg:h-[500px] xl:h-[600px] overflow-hidden bg-gray-100 group shadow-lg z-10">
       {/* Slides */}
       <div 
         className="flex transition-transform duration-700 ease-in-out h-full"

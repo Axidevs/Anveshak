@@ -13,11 +13,11 @@ export default function Footer() {
   ];
 
   const quickLinks = [
-    { label: t('nav.about'), href: '/#about' },
-    { label: t('nav.howItWorks'), href: '/#how-it-works' },
-    { label: t('nav.forCitizens'), href: '/#citizens' },
-    { label: t('nav.forOfficers'), href: '/#officers' },
-    { label: t('nav.forCourts'), href: '/#courts' },
+    { label: t('nav.about'), href: '/home#about' },
+    { label: t('nav.howItWorks'), href: '/home#how-it-works' },
+    { label: t('nav.forCitizens'), href: '/home#citizens' },
+    { label: t('nav.forOfficers'), href: '/home#officers' },
+    { label: t('nav.forCourts'), href: '/home#courts' },
   ];
 
   const legalLinks = [
@@ -31,16 +31,14 @@ export default function Footer() {
     <footer className="bg-navy-950 text-white" role="contentinfo">
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
           {/* Brand */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <Link to="/" className="flex items-center gap-2.5 mb-4" aria-label="Nyaya Setu Home">
-              <div className="w-10 h-10 rounded-full border-2 border-white/30 flex items-center justify-center">
-                <Scale className="w-5 h-5" />
-              </div>
+            <Link to="/home" className="flex items-center gap-2.5 mb-4" aria-label="Anveshak Home">
+              <img src="/logo.jpg" alt="Anveshak Logo" className="w-16 h-16 object-contain" />
               <div className="flex flex-col leading-none">
-                <span className="text-lg font-bold">न्याय सेतु</span>
-                <span className="text-[10px] font-medium opacity-60 tracking-wider uppercase">Nyaya Setu</span>
+                <span className="text-lg font-bold">अन्वेषक</span>
+                <span className="text-[10px] font-medium opacity-60 tracking-wider uppercase">Anveshak</span>
               </div>
             </Link>
             <p className="text-sm text-white/60 leading-relaxed mb-4 max-w-xs">

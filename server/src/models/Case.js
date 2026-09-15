@@ -38,37 +38,58 @@ const caseSchema = new mongoose.Schema(
         "CHARGE_SHEET",
         "COURT_PROCEEDINGS",
         "RESOLVED",
-        "DISPOSED"
       ],
       default: "FIR_REGISTERED",
     },
+
     priority: {
       type: String,
       enum: ["LOW", "MEDIUM", "HIGH"],
       default: "MEDIUM",
     },
 
+    aiAnalysis: {
+      classification: {
+        type: String,
+        default: null,
+      },
+
+      confidence: {
+        type: Number,
+        default: null,
+      },
+
+      summary: {
+        type: String,
+        default: null,
+      },
+
+      severity: {
+        type: String,
+        enum: ["LOW", "MEDIUM", "HIGH"],
+        default: null,
+      },
+
+      reasoning: {
+        type: String,
+        default: null,
+      },
+
+      keywords: {
+        type: [String],
+        default: [],
+      },
+
+      aiAvailable: {
+        type: Boolean,
+        default: false,
+      },
+    },
+
     jurisdiction: {
       type: String,
       default: null,
     },
-
-    // --- Court Module Additions ---
-    nextHearingDate: {
-      type: Date,
-      default: null,
-    },
-    
-    courtProceedings: [
-      {
-        hearingDate: { type: Date, required: true },
-        note: { type: String, required: true },
-        nextHearingDate: { type: Date, default: null },
-        documentId: { type: mongoose.Schema.Types.ObjectId, ref: "Document", default: null },
-        signedBy: { type: String, default: null },
-        signedAt: { type: Date, default: null }
-      }
-    ],
   },
   {
     timestamps: true,

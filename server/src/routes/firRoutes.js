@@ -1,6 +1,7 @@
 const express = require("express");
 
 const protect = require("../middleware/authMiddleware");
+const allowRoles = require("../middleware/roleMiddleware");
 
 const {
   createFIR,
@@ -10,10 +11,38 @@ const {
 
 const router = express.Router();
 
-router.post("/", protect, createFIR);
 
-router.get("/my", protect, getMyFIRs);
+// Create FIR
+router.post(
+  "/",
+  protect,
+  allowRoles("CITIZEN"),
+  createFIR
+);
 
-router.get("/:firId", protect, getFIR);
+
+// Get my FIRs
+router.get(
+  "/my",
+  protect,
+  allowRoles("CITIZEN"),
+  getMyFIRs
+);
+
+
+// Get single FIR
+router.get(
+  "/:firId",
+  protect,
+  allowRoles(
+    "CITIZEN",
+    "POLICE",
+    "INVESTIGATING_AGENCY",
+    "COURT",
+    "ADMIN"
+  ),
+  getFIR
+);
+
 
 module.exports = router;

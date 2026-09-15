@@ -49,7 +49,33 @@ export default function CourtMyCases() {
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
 
-  const cases = (mockCourtCases && mockCourtCases.length > 0) ? mockCourtCases : fallbackCases;
+  const [cases, setCases] = React.useState([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchCases = async () => {
+      try {
+        const token = localStorage.getItem('anveshak_token');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+        const res = await fetch(`${API_URL}/case`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if(res.ok) {
+           const mapped = data.cases.filter(c => c.status === 'COURT_PROCEEDINGS' || c.status === 'CHARGESHEET').map(c => ({
+             id: c.caseId || c._id,
+             title: c.firId ? `${c.firId.category} Case` : 'Case File',
+             status: 'Hearing Scheduled',
+             hearingDate: 'Upcoming',
+             priority: c.priority || 'Medium',
+             nextAction: 'Review Evidence'
+           }));
+           setCases(mapped.length > 0 ? mapped : fallbackCases);
+        }
+      } catch(e) { console.error(e); } finally { setIsLoading(false); }
+    };
+    fetchCases();
+  }, []);
 
   const filtered = cases.filter(c => {
     const matchesSearch =

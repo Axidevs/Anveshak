@@ -125,11 +125,52 @@ const LogFIR = () => {
     return <File size={20} className="text-navy" />;
   };
 
-  const handleSubmit = () => {
-    // SIMULATED: In production, this would connect to the backend API to save the FIR
-    const id = generateTrackingId();
-    setTrackingId(id);
-    setCurrentStep(5);
+  const handleSubmit = async () => {
+    try {
+      const token = localStorage.getItem('anveshak_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+
+      const payload = {
+        complainant: "Citizen",
+        incidentDescription: description || "No description",
+        incidentDate: incidentDate ? new Date(incidentDate + "T" + (incidentTime || "00:00")) : new Date(),
+        incidentLocation: location || "Unknown Location",
+        category: (incidentType || "OTHER").toUpperCase().replace(/ /g, "_"),
+      };
+
+      const res = await fetch(`${API_URL}/fir`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if(res.ok) {
+        // Now automatically create the case for the demo flow
+        const caseRes = await fetch(`${API_URL}/case`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({ firId: data.fir._id })
+        });
+        const caseData = await caseRes.json();
+        
+        if (caseRes.ok) {
+          setTrackingId(caseData.case ? caseData.case.caseId : (caseData.caseRecord ? caseData.caseRecord.caseId : data.fir.firNumber));
+          setCurrentStep(5);
+        } else {
+          setTrackingId(data.fir.firNumber);
+          setCurrentStep(5);
+        }
+      } else {
+        alert("Failed to submit FIR: " + data.message);
+      }
+    } catch(e) { console.error(e); alert("Error submitting FIR: " + e.message + " | " + e.stack); }
   };
 
   const stepLabels = ['Incident', 'Details', 'Location', 'Evidence', 'Review'];

@@ -31,18 +31,96 @@ export default function CaseDetail() {
 
   const [showAuditModal, setShowAuditModal] = useState(false);
 
-  // Find the case
-  const caseData = mockOfficerCases?.find(c => c.id === id || c.caseId === id) || {
+  const [caseData, setCaseData] = useState({
     id: id,
     caseId: id || 'CAS-000',
-    title: 'Unknown Case',
+    title: 'Loading Case...',
     status: 'Unknown',
     priority: 'Normal',
     type: 'N/A',
     date: 'N/A',
     location: 'N/A',
-    description: 'Case details not found.',
-  };
+    description: 'Loading details from real database...',
+    aiAnalysis: null
+  });
+
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchCase = async () => {
+      try {
+        const token = localStorage.getItem('anveshak_token');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+        
+        const res = await fetch(`${API_URL}/case/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        
+        let timelineData = [];
+        try {
+          const tRes = await fetch(`${API_URL}/case/${id}/timeline`, { headers: { Authorization: `Bearer ${token}` } });
+          const tData = await tRes.json();
+          if (tRes.ok && tData.timeline) {
+            timelineData = tData.timeline.map(t => ({
+              event: t.action ? t.action.replace(/_/g, ' ') : (t.status || 'Update'),
+              date: new Date(t.createdAt).toLocaleDateString(),
+              by: t.performedBy ? (t.performedBy.name || t.performedBy) : 'System',
+              description: t.description || ''
+            }));
+          }
+        } catch(e) {}
+
+        let auditData = [];
+        try {
+          const aRes = await fetch(`${API_URL}/case/${id}/audit`, { headers: { Authorization: `Bearer ${token}` } });
+          const aData = await aRes.json();
+          console.log("AUDIT API RESPONSE:", aRes.status, aData);
+          if (aRes.ok && aData.auditLogs) {
+            auditData = aData.auditLogs.map(log => ({
+              id: log._id,
+              timestamp: log.createdAt,
+              by: log.userId ? (log.userId.name || log.userId) : 'System',
+              user: log.userId ? (log.userId.name || log.userId) : 'System',
+              action: log.action ? log.action.replace(/_/g, ' ') : 'Action',
+              target: log.caseId,
+              details: log.description
+            }));
+          }
+        } catch(e) {}
+
+        if(res.ok && data.case) {
+          const c = data.case;
+          setCaseData({
+            id: c.caseId || c._id,
+            caseId: c.caseId || c._id,
+            realId: c._id,
+            title: c.firId ? `${c.firId.category || 'Incident'} — ${c.firId.incidentLocation || 'Unknown'}` : 'Case File',
+            status: c.status || 'ACTIVE',
+            priority: c.priority || 'MEDIUM',
+            type: c.firId?.category || 'General',
+            date: c.createdAt,
+            location: c.jurisdiction || c.firId?.incidentLocation || 'Unknown Location',
+            description: c.firId?.incidentDescription || 'No description',
+            aiAnalysis: c.aiAnalysis || null,
+            evidence: (c.evidence || []).map(e => ({
+                id: e._id || e.evidenceId,
+                filename: e.fileName || e.filename || 'Document',
+                type: 'Evidence',
+                uploadedBy: e.uploadedBy ? (e.uploadedBy.name || e.uploadedBy) : 'System',
+                date: new Date(e.createdAt || Date.now()).toLocaleDateString()
+              })),
+            timeline: timelineData,
+            auditLog: auditData
+          });
+        }
+      } catch(e) {
+        console.error("Error fetching case:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchCase();
+  }, [id]);
 
   const statusMap = {
     'active': 2,
@@ -56,35 +134,72 @@ export default function CaseDetail() {
   const statusStep = statusMap[caseData.status] || 1;
 
   // Mock Evidence data if not present
-  const evidenceList = caseData.evidence || [
-    { id: 1, filename: 'witness_statement_1.pdf', type: 'Document', uploadedBy: 'Officer Sharma', date: '2026-09-01' },
-    { id: 2, filename: 'cctv_footage_cam4.mp4', type: 'Video', uploadedBy: 'Inspector Patil', date: '2026-09-02' },
-    { id: 3, filename: 'forensic_report_initial.pdf', type: 'Report', uploadedBy: 'Dr. Gupta (FSL)', date: '2026-09-04' }
-  ];
+  const evidenceList = caseData.evidence || [];
 
   // Case Audit Log
-  const caseAuditLog = mockAuditLog?.filter(log => log.caseId === id) || [
-    { id: 101, action: 'Viewed Case File', by: 'Insp. R. Sharma', timestamp: '2 mins ago', verified: true },
-    { id: 102, action: 'Evidence Uploaded', by: 'Sub-Insp. A. Patel', timestamp: '1 hour ago', verified: true },
-    { id: 103, action: 'Status Updated to Active', by: 'SHO K. Singh', timestamp: '1 day ago', verified: true }
-  ];
+  const caseAuditLog = caseData.auditLog || [];
 
-  const handleEvidenceUpload = (e) => {
+  const handleEvidenceUpload = async (e) => {
     e.preventDefault();
     if (!evidenceFile) return;
-    alert(`File ${evidenceFile.name} securely uploaded and signed.`);
-    setEvidenceFile(null);
-    setShowUploadEvidence(false);
-    setSignatureVerified(false);
+    try {
+      const token = localStorage.getItem('anveshak_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      const formData = new FormData();
+      formData.append('file', evidenceFile);
+      formData.append('caseId', caseData.caseId || caseData.id);
+      formData.append('description', 'Evidence document uploaded by officer');
+      
+      const res = await fetch(`${API_URL}/evidence/upload`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData
+      });
+      if(res.ok) {
+        setEvidenceFile(null);
+        setShowUploadEvidence(false);
+        setSignatureVerified(false);
+        window.location.reload();
+      } else {
+        const d = await res.json();
+        alert("Upload failed: " + d.message);
+      }
+    } catch(err) {
+      alert("Error uploading evidence: " + err.message);
+    }
   };
 
-  const handleTimelineUpdate = (e) => {
+  const handleTimelineUpdate = async (e) => {
     e.preventDefault();
     if (!timelineEvent.event) return;
-    alert(`Timeline event "${timelineEvent.event}" securely added.`);
-    setTimelineEvent({ date: '', event: '', description: '' });
-    setShowEditTimeline(false);
-    setTimelineSignatureVerified(false);
+    try {
+      const token = localStorage.getItem('anveshak_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+      
+      const res = await fetch(`${API_URL}/case/${caseData.caseId || caseData.id}/timeline`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({
+          action: timelineEvent.event,
+          description: timelineEvent.description || "No description",
+          date: timelineEvent.date
+        })
+      });
+      if(res.ok) {
+        setTimelineEvent({ date: '', event: '', description: '' });
+        setShowEditTimeline(false);
+        setTimelineSignatureVerified(false);
+        window.location.reload();
+      } else {
+        const d = await res.json();
+        alert("Timeline update failed: " + (d.message || d.error));
+      }
+    } catch(err) {
+      alert("Error updating timeline: " + err.message);
+    }
   };
 
   return (
@@ -215,6 +330,36 @@ export default function CaseDetail() {
               </div>
             </div>
 
+            {caseData.aiAnalysis && (
+            <div className="bg-gradient-to-br from-indigo-900 to-violet-900 rounded-2xl shadow-lg p-6 mb-6 text-white animate-fade-in-up">
+              <h2 className="text-xl font-serif font-bold mb-4 flex items-center">
+                <Activity className="w-5 h-5 mr-2 text-indigo-300" /> Gemini AI Analysis
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="bg-white/10 rounded-lg p-3">
+                  <p className="text-indigo-200 text-xs uppercase font-bold">Classification</p>
+                  <p className="font-semibold">{caseData.aiAnalysis.classification}</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3">
+                  <p className="text-indigo-200 text-xs uppercase font-bold">Confidence</p>
+                  <p className="font-semibold">{caseData.aiAnalysis.confidenceScore}</p>
+                </div>
+                <div className="bg-white/10 rounded-lg p-3">
+                  <p className="text-indigo-200 text-xs uppercase font-bold">Severity</p>
+                  <p className="font-semibold">{caseData.aiAnalysis.severity}</p>
+                </div>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4 mb-4">
+                <p className="text-indigo-200 text-xs uppercase font-bold mb-1">Summary</p>
+                <p className="text-sm leading-relaxed">{caseData.aiAnalysis.summary}</p>
+              </div>
+              <div className="bg-white/10 rounded-lg p-4">
+                <p className="text-indigo-200 text-xs uppercase font-bold mb-1">Reasoning</p>
+                <p className="text-sm leading-relaxed">{caseData.aiAnalysis.reasoning}</p>
+              </div>
+            </div>
+            )}
+            
             {/* Case Timeline */}
             <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-violet-100 shadow-sm p-6 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <h2 className="text-xl font-serif font-semibold text-violet-800 mb-4 flex items-center">
@@ -506,7 +651,7 @@ export default function CaseDetail() {
               </button>
             </div>
             <div className="p-4 overflow-y-auto flex-1">
-              <AuditTrail caseFilter={caseData.caseId || caseData.id} limit={50} />
+              <AuditTrail logs={caseData.auditLog} caseFilter={caseData.caseId || caseData.id} limit={50} />
             </div>
             <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button 

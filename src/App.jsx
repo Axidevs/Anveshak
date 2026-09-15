@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Navbar from './components/layout/Navbar';
@@ -10,6 +10,7 @@ import { useState, useEffect } from 'react';
 
 // Lazy-style imports (all eager for prototype reliability)
 import Landing from './pages/Landing';
+import Home from './pages/Home';
 import Login from './pages/auth/Login';
 import CitizenRegister from './pages/auth/CitizenRegister';
 import OfficerRegister from './pages/auth/OfficerRegister';
@@ -40,7 +41,7 @@ function ProtectedRoute({ allowedRoles }) {
   
   if (isLoading) return <div>Loading...</div>;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
+  if (allowedRoles && (!user || !allowedRoles.some(r => r.toUpperCase() === (user.role || '').toUpperCase()))) {
     return <Navigate to="/" replace />;
   }
   
@@ -103,9 +104,12 @@ function DashboardLayout() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Gateway route (No Navbar/Footer) */}
+      <Route path="/" element={<Landing />} />
+
+      {/* Public routes (With standard Navbar/Footer) */}
       <Route element={<PublicLayout />}>
-        <Route path="/" element={<Landing />} />
+        <Route path="/home" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register/citizen" element={<CitizenRegister />} />
         <Route path="/register/officer" element={<OfficerRegister />} />
@@ -122,7 +126,7 @@ function AppRoutes() {
       </Route>
 
       {/* Officer routes */}
-      <Route element={<ProtectedRoute allowedRoles={['POLICE']} />}>
+      <Route element={<ProtectedRoute allowedRoles={['POLICE', 'INVESTIGATING_AGENCY', 'AGENCY']} />}>
         <Route element={<DashboardLayout />}>
           <Route path="/officer" element={<OfficerDashboard />} />
           <Route path="/officer/search" element={<SmartSearch />} />
@@ -155,14 +159,20 @@ function AppRoutes() {
   );
 }
 
+function AuthGateWrapper({ gateOpen, handleGateAuth }) {
+  const location = useLocation();
+  if (location.pathname === '/') return null;
+  return gateOpen ? <AuthGate onAuthenticated={handleGateAuth} /> : null;
+}
+
 export default function App() {
   const [gateOpen, setGateOpen] = useState(() => {
     // SIMULATED: In production, this checks for a real DigiLocker session token
-    return sessionStorage.getItem('nyayasetu_verified') !== 'true';
+    return sessionStorage.getItem('Anveshak_verified') !== 'true';
   });
 
   const handleGateAuth = () => {
-    sessionStorage.setItem('nyayasetu_verified', 'true');
+    sessionStorage.setItem('Anveshak_verified', 'true');
     setGateOpen(false);
   };
 
@@ -170,7 +180,7 @@ export default function App() {
     <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>
-          {gateOpen && <AuthGate onAuthenticated={handleGateAuth} />}
+          <AuthGateWrapper gateOpen={gateOpen} handleGateAuth={handleGateAuth} />
           <AppRoutes />
         </AuthProvider>
       </LanguageProvider>

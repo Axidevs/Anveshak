@@ -12,10 +12,42 @@ export default function OfficerDashboard() {
   const { t } = useLanguage();
   const { user } = useAuth();
 
-  const totalCases = mockOfficerCases.length;
-  const activeCases = mockOfficerCases.filter(c => c.status === 'Active' || c.status === 'Court').length;
-  const pendingReview = 2; // Mocked stat
-  const sharedAccess = mockSharedAccess.length;
+    const [stats, setStats] = React.useState({ total: 0, active: 0, pending: 0, shared: 0 });
+  const [recentCases, setRecentCases] = React.useState([]);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem('anveshak_token');
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api';
+        
+        // Fetch stats
+        const statsRes = await fetch(`${API_URL}/case/stats`, { headers: { Authorization: `Bearer ${token}` } });
+        if(statsRes.ok) {
+           const sData = await statsRes.json();
+           setStats({
+             total: sData.stats?.totalCases || 0,
+             active: sData.stats?.byStatus?.find(s => s._id === 'INVESTIGATION')?.count || 0,
+             pending: sData.stats?.byStatus?.find(s => s._id === 'ASSIGNED')?.count || 0,
+             shared: 2
+           });
+        }
+        
+        // Fetch recent cases
+        const casesRes = await fetch(`${API_URL}/case/assigned-to-me`, { headers: { Authorization: `Bearer ${token}` } });
+        if(casesRes.ok) {
+           const cData = await casesRes.json();
+           setRecentCases(cData.cases || []);
+        }
+      } catch(e) {}
+    };
+    fetchData();
+  }, []);
+
+  const totalCases = stats.total;
+  const activeCases = stats.active;
+  const pendingReview = stats.pending;
+  const sharedAccess = stats.shared;
 
 
 
@@ -92,14 +124,14 @@ export default function OfficerDashboard() {
             <Link to="/officer/cases" className="text-sm text-navy hover:underline font-medium">View All</Link>
           </div>
           <div className="divide-y divide-gray-100">
-            {mockOfficerCases.slice(0, 4).map(c => (
-              <div key={c.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
+            {recentCases.slice(0, 4).map(c => (
+              <div key={c._id || c.caseId} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold text-charcoal">{c.title}</h3>
-                  <p className="text-xs text-gray-500 mt-1">{c.id} • {c.type}</p>
+                  <h3 className="font-semibold text-charcoal">{c.firId ? (c.firId.category + ' Case') : 'Investigation File'}</h3>
+                  <p className="text-xs text-gray-500 mt-1">{c.caseId || c._id} • {c.firId?.category || 'General'}</p>
                 </div>
                 <Link
-                  to={`/officer/cases/${c.id}`}
+                  to={`/officer/cases/${c.caseId || c._id}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-charcoal hover:border-navy hover:text-navy transition-all shadow-sm"
